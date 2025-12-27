@@ -1,4 +1,3 @@
-'EOF'
 <template>
   <div class="home">
     <div class="hero">
@@ -142,4 +141,3 @@ h1 {
   line-height: 1.6;
 }
 </style>
-EOF
