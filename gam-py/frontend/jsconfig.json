@@ -1,21 +1,10 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "module": "esnext",
-    "baseUrl": "./",
-    "moduleResolution": "node",
+    "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    },
-    "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
-    "allowJs": true,
-    "strict": false,
-    "noImplicitAny": false,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true
+    }
   },
-  "include": ["src/**/*.js", "src/**/*.vue", "src/**/*.ts"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }
