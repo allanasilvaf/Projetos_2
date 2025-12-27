@@ -6,14 +6,20 @@ Antes de começar, instale:
 - [PHP](https://www.php.net/) (versão 7.4+)
 - [MySQL](https://www.mysql.com/) ou MariaDB
 
+
+  
+
 ## 🛠️ Passo a Passo
 
 ### 1. Clone o repositório
-```bash
+
 git clone https://github.com/allanasilvaf/Projetos_2.git
 cd Projetos_2
 
-###2. Configure o banco de dados
+
+
+
+### 2. Configure o banco de dados
 mysql -u root -p <<EOF
 CREATE DATABASE gam_db;
 USE gam_db;
@@ -42,35 +48,40 @@ INSERT INTO usuarios (nome, email, senha, tipo) VALUES
 ('Professor Teste', 'professor@faculdade.edu', SHA2('prof123', 256), 'professor'),
 ('Aluno Teste', 'aluno@faculdade.edu', SHA2('aluno123', 256), 'estudante');
 EOF
+
+
+
+
  
-###3. Configure o backend PHP
+### 3. Configure o backend PHP
+
 cd backend
-# Edite o arquivo config/database.php com suas credenciais do MySQL
+## Edite o arquivo config/database.php com suas credenciais do MySQL
 cp config/database.example.php config/database.php
 nano config/database.php
 
-# Inicie o servidor PHP (mantenha este terminal aberto)
+## Inicie o servidor PHP (mantenha este terminal aberto)
 php -S localhost:8000
  
-###4. Configure o frontend Vue.js
-# Em um NOVO terminal, volte para a pasta do projeto
+### 4. Configure o frontend Vue.js
+ Em um NOVO terminal, volte para a pasta do projeto
 cd frontend
 
-# Instale as dependências
+## Instale as dependências
 npm install
 
-# Inicie o servidor de desenvolvimento
+## Inicie o servidor de desenvolvimento
 npm run serve
  
-###5. Acesse o sistema
-    🌐 URL do frontend: http://localhost:8080
+### 5. Acesse o sistema
+ 🌐 URL do frontend: http://localhost:8080
 
-    🔧 URL da API: http://localhost:8000/api/
+ 🔧 URL da API: http://localhost:8000/api/
 
-    🔐 Credenciais para teste:
+  🔐 Credenciais para teste:
 
-        Admin: admin@faculdade.edu / admin123
+  Admin: admin@faculdade.edu / admin123
 
-        Professor: professor@faculdade.edu / prof123
+  Professor: professor@faculdade.edu / prof123
 
-        Aluno: aluno@faculdade.edu / aluno123
+  Aluno: aluno@faculdade.edu / aluno123
