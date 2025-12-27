@@ -9,11 +9,11 @@ Antes de começar, instale:
 ## 🛠️ Passo a Passo
 
 ### 1. Clone o repositório
-```bash
+
 git clone https://github.com/allanasilvaf/Projetos_2.git
 cd Projetos_2
 
-###2. Configure o banco de dados
+### 2. Configure o banco de dados
 mysql -u root -p <<EOF
 CREATE DATABASE gam_db;
 USE gam_db;
@@ -43,7 +43,7 @@ INSERT INTO usuarios (nome, email, senha, tipo) VALUES
 ('Aluno Teste', 'aluno@faculdade.edu', SHA2('aluno123', 256), 'estudante');
 EOF
  
-###3. Configure o backend PHP
+### 3. Configure o backend PHP
 cd backend
 # Edite o arquivo config/database.php com suas credenciais do MySQL
 cp config/database.example.php config/database.php
@@ -52,7 +52,7 @@ nano config/database.php
 # Inicie o servidor PHP (mantenha este terminal aberto)
 php -S localhost:8000
  
-###4. Configure o frontend Vue.js
+### 4. Configure o frontend Vue.js
 # Em um NOVO terminal, volte para a pasta do projeto
 cd frontend
 
@@ -62,7 +62,7 @@ npm install
 # Inicie o servidor de desenvolvimento
 npm run serve
  
-###5. Acesse o sistema
+### 5. Acesse o sistema
     🌐 URL do frontend: http://localhost:8080
 
     🔧 URL da API: http://localhost:8000/api/
