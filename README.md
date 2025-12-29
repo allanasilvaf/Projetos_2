@@ -8,80 +8,76 @@ Antes de começar, instale:
 
 
   
+## 📐Estrutura dos Arquivos
+
+```
+📦 gam-py/
+├── 🗄️ backend/                       # Servidor backend em PHP
+│   ├── 🔌 api/                      # Endpoints da API REST
+│   ├── 🧩 classes/                  # Classes PHP (Models, Controllers)
+│   ├── ⚙️ config/                   # Configurações (banco de dados, etc.)
+│   ├── 🚀 index.php                 # Ponto de entrada principal
+│   ├── 🌱 seed.php                  # Popula banco com dados iniciais
+│   └── 🔧 test_connection.php       # Testa conexão com banco
+└── 🎨 frontend/                     # Aplicação frontend Vue.js
+    ├── 📄 app.js                    # Entry point da aplicação
+    ├── 🖼️ assets/                   # Imagens, ícones, fonts
+    ├── 📦 dist/                     # Build de produção (npm run build)
+    ├── 📚 node_modules/             # Dependências (não commit)
+    ├── 🌐 public/                   # Arquivos estáticos públicos
+    ├── 📝 src/                      # Código fonte principal
+    │   ├── 🧱 components/           # Componentes reutilizáveis
+    │   ├── 🖥️ views/                # Páginas da aplicação
+    │   ├── 🛣️ router/               # Configuração de rotas
+    │   ├── 🗃️ store/                # Gerenciamento de estado
+    │   └── ⚡ main.js               # Inicialização do Vue
+    ├── 🔧 .browserslistrc           # Compatibilidade com navegadores
+    ├── 🧹 .eslintrc.js              # Regras de linting
+    ├── 🔒 .gitignore                # Ignora arquivos no Git
+    ├── ⚡ babel.config.js           # Transpilação JavaScript
+    ├── 📋 jsonfig.json              # Configuração JSON (typ: jsconfig.json)
+    ├── 📦 package-lock.json         # Lock de dependências
+    ├── 📦 package.json              # Dependências e scripts
+    ├── 📖 README.md                 # Documentação
+    └── ⚙️ vue.config.js             # Configuração Vue CLI
+```
+
 
 ## 🛠️ Passo a Passo
 
 ### 1. Clone o repositório
 
+```bash
 git clone https://github.com/allanasilvaf/Projetos_2.git
 cd Projetos_2
+```
 
 
+### 2. Configure o frontend Vue.js
 
-
-### 2. Configure o banco de dados
-mysql -u root -p <<EOF
-CREATE DATABASE gam_db;
-USE gam_db;
-
-CREATE TABLE usuarios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    senha VARCHAR(255) NOT NULL,
-    tipo ENUM('admin', 'professor', 'estudante') DEFAULT 'estudante',
-    sobrenome VARCHAR(100),
-    cpf VARCHAR(14) UNIQUE,
-    telefone VARCHAR(20),
-    data_nascimento DATE,
-    endereco TEXT,
-    curso_id INT,
-    semestre INT,
-    matricula VARCHAR(20) UNIQUE,
-    foto VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Usuários de teste
-INSERT INTO usuarios (nome, email, senha, tipo) VALUES 
-('Administrador', 'admin@faculdade.edu', SHA2('admin123', 256), 'admin'),
-('Professor Teste', 'professor@faculdade.edu', SHA2('prof123', 256), 'professor'),
-('Aluno Teste', 'aluno@faculdade.edu', SHA2('aluno123', 256), 'estudante');
-EOF
-
-
-
-
- 
-### 3. Configure o backend PHP
-
-cd backend
-## Edite o arquivo config/database.php com suas credenciais do MySQL
-cp config/database.example.php config/database.php
-nano config/database.php
-
-## Inicie o servidor PHP (mantenha este terminal aberto)
-php -S localhost:8000
- 
-### 4. Configure o frontend Vue.js
- Em um NOVO terminal, volte para a pasta do projeto
-cd frontend
-
-## Instale as dependências
-npm install
-
-## Inicie o servidor de desenvolvimento
+```bash
+# Instale as dependências
+npm install 
+```
+```bash
+# Instale as dependências
 npm run serve
+```
+```bash
+# Em um novo terminal, volte na pasta frontend para iniciar a produção.
+npm run build
+```
+
+### 3. Inicie o Banco de dados
+```bash
+# Em um novo terminal, entre na pasta backend
+php seed.php
+```
  
-### 5. Acesse o sistema
- 🌐 URL do frontend: http://localhost:8080
+### 4. Acesse o sistema
+```bash 
+🌐 URL do frontend: http://localhost:8080
 
- 🔧 URL da API: http://localhost:8000/api/
-
-  🔐 Credenciais para teste:
-
-  Admin: admin@faculdade.edu / admin123
-
-  Professor: professor@faculdade.edu / prof123
-
-  Aluno: aluno@faculdade.edu / aluno123
+🔧 URL da API: http://localhost:8000/api/
+```
+  
