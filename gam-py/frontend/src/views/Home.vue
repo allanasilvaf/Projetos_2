@@ -316,7 +316,7 @@ export default {
 .hero-badge-title h1 {
   margin: 0;
   font-size: 2.2rem; 
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.2;
 }
 .hero-subtitle {
