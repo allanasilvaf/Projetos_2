@@ -12,13 +12,12 @@ export default {
     }
   },
   methods: {
-    async handleLogin() {
+async handleLogin() {
       this.loading = true;
       this.error = '';
       
       try {
-        console.log('📤 Enviando para API...');
-        
+        // 1. Conexão com a API
         const response = await fetch('http://localhost:8000/api/login.php', {
           method: 'POST',
           headers: { 
@@ -31,42 +30,45 @@ export default {
           })
         });
         
-        console.log('📥 Resposta recebida:', response.status);
-        
-        if (!response.ok) {
-          throw new Error(`Erro HTTP: ${response.status}`);
+        // 2. Transforma a resposta em texto primeiro para debug
+        const text = await response.text();
+        console.log("Resposta bruta do servidor:", text);
+
+        // Tenta converter para JSON
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            throw new Error("O servidor não retornou um JSON válido. Veja o console.");
         }
         
-        const data = await response.json();
-        console.log('📊 Dados:', data);
+        // --- AQUI ESTAVA O PROBLEMA ---
         
+        // CASO 1: Erro crítico do Banco (ex: senha errada no database.php)
+        if (data.error) {
+          this.error = data.error;
+          alert("ERRO DE SISTEMA: " + data.error); // Usamos alert em vez de toast
+          return;
+        }
+
+        // CASO 2: Login Sucesso
         if (data.success) {
-          // Salvar usuário no localStorage
           localStorage.setItem('user', JSON.stringify(data.user));
           localStorage.setItem('token', 'fake_token_' + Date.now());
           
-          // Redirecionar
+          // Redireciona
           this.redirectUser(data.user.tipo);
           
-          this.$toast.success(`Bem-vindo, ${data.user.nome}!`, {
-            position: 'top-right',
-            duration: 3000
-          });
         } else {
-          this.error = data.message || 'Erro no login';
-          this.$toast.error(this.error, {
-            position: 'top-right',
-            duration: 5000
-          });
+          // CASO 3: Senha ou Email incorretos (Lógica de negócio)
+          this.error = data.message || 'Email ou senha incorretos';
+          alert("Atenção: " + this.error); // Usamos alert em vez de toast
         }
         
       } catch (error) {
-        console.error('💥 Erro completo:', error);
-        this.error = 'Erro de conexão com o servidor';
-        this.$toast.error('Não foi possível conectar ao servidor. Verifique se o PHP está rodando.', {
-          position: 'top-right',
-          duration: 5000
-        });
+        console.error('Erro completo:', error);
+        this.error = 'Erro de conexão ou servidor';
+        alert("Erro técnico: " + error.message); // Usamos alert em vez de toast
       } finally {
         this.loading = false;
       }
@@ -146,9 +148,9 @@ export default {
         
         <div v-if="showDemoCredentials" class="demo-credentials">
           <p><small><strong>Atenção:</strong> Apenas para desenvolvimento</small></p>
-          <p><small>👨‍🏫 Professor: professor@faculdade.edu / 123456</small></p>
-          <p><small>👨‍🎓 Aluno: aluno@faculdade.edu / 123456</small></p>
-          <p><small>👑 Admin: admin@faculdade.edu / 123456</small></p>
+          <p><small>👨‍🏫 Professor: professor@faculdade.edu | prof123</small></p>
+          <p><small>👨‍🎓 Aluno: aluno@faculdade.edu | aluno123</small></p>
+          <p><small>👑 Admin: admin@faculdade.edu | admin123</small></p>
         </div>
       </div>
     </form>
