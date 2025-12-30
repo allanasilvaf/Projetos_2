@@ -10,6 +10,7 @@
   "dependencies": {
     "core-js": "^3.8.3",
     "vue": "^2.6.14",
+    "vue-feather-icons": "^5.1.0",
     "vue-router": "^3.6.5",
     "vuex": "^3.6.2"
   },
