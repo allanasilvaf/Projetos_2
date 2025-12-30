@@ -17,10 +17,10 @@
           Painel
         </router-link>
         
-        <router-link to="/alunos" class="nav-item" active-class="active">
+        <!-- <router-link to="/alunos" class="nav-item" active-class="active">
           <users-icon size="1.2x" class="nav-icon"></users-icon>
           Alunos
-        </router-link>
+        </router-link> -->
         
         <router-link to="/ajustes" class="nav-item" active-class="active">
           <settings-icon size="1.2x" class="nav-icon"></settings-icon>
@@ -40,7 +40,7 @@
 </template>
 
 <script>
-  
+
 import { 
   HomeIcon, 
   LayoutIcon, 
