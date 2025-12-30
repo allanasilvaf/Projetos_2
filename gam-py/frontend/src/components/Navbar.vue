@@ -3,28 +3,36 @@
     <div class="header-container">
       
       <div class="header-left">
-        <img src="@/assets/logo.png" alt="Logo GAM.py" class="header-logo">
-        <span class="logo-text">GAM.py</span>
+        <img src="@/assets/logo-verde.svg" alt="Logo GAM.py" class="header-logo">
       </div>
 
       <nav class="header-nav">
         <router-link to="/" class="nav-item" exact-active-class="active">
-          <span class="icon">🏠</span> Início
+          <home-icon size="1.2x" class="nav-icon"></home-icon>
+          Início
         </router-link>
+        
         <router-link to="/dashboard" class="nav-item" active-class="active">
-          <span class="icon">📊</span> Painel
+          <layout-icon size="1.2x" class="nav-icon"></layout-icon>
+          Painel
         </router-link>
+        
         <router-link to="/alunos" class="nav-item" active-class="active">
-          <span class="icon">👥</span> Alunos
+          <users-icon size="1.2x" class="nav-icon"></users-icon>
+          Alunos
         </router-link>
+        
         <router-link to="/ajustes" class="nav-item" active-class="active">
-          <span class="icon">⚙️</span> Ajustes
+          <settings-icon size="1.2x" class="nav-icon"></settings-icon>
+          Ajustes
         </router-link>
       </nav>
 
       <div class="header-right">
         <router-link to="/login" class="btn-action">Acessar Portal</router-link>
-        <div class="profile-icon">👤</div>
+        <div class="profile-icon">
+          <user-icon size="1.2x" class="nav-icon"></user-icon>
+        </div>
       </div>
 
     </div>
@@ -32,16 +40,29 @@
 </template>
 
 <script>
+  
+import { 
+  HomeIcon, 
+  LayoutIcon, 
+  UsersIcon, 
+  SettingsIcon, 
+  UserIcon 
+} from 'vue-feather-icons';
+
 export default {
-  name: 'AppNavbar'
+  name: 'AppNavbar',
+  // 2. Registro dos componentes
+  components: {
+    HomeIcon,
+    LayoutIcon,
+    UsersIcon,
+    SettingsIcon,
+    UserIcon
+  }
 }
 </script>
 
 <style scoped>
-/* Aqui trazemos apenas o CSS que é EXCLUSIVO da Navbar.
-  Usamos as variáveis globais do main.css para manter a consistência.
-*/
-
 .app-header {
   position: fixed;
   top: 0;
@@ -75,35 +96,34 @@ export default {
   width: auto;
 }
 
-.logo-text {
-  font-weight: 700;
-  font-size: 1.2rem;
-  color: white;
-}
-
 .header-nav {
   display: flex;
   gap: 25px;
-  /* Esconde o menu em telas muito pequenas */
-  @media (max-width: 768px) {
-    display: none;
-  }
 }
 
 .nav-item {
-  color: rgba(255,255,255, 0.9);
+  color: rgba(255,255,255, 0.8);
   font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 6px;
-  transition: color 0.2s;
+  gap: 8px;
+  transition: all 0.2s;
   text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.nav-icon {
+  stroke-width: 2;
+  transition: transform 0.2s;
 }
 
 .nav-item:hover, .nav-item.active {
   color: white;
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  text-decoration: none;
+}
+
+.nav-item:hover .nav-icon {
+  transform: translateY(-2px);
 }
 
 .header-right {
@@ -129,8 +149,8 @@ export default {
 }
 
 .profile-icon {
-  width: 35px;
-  height: 35px;
+  width: 38px;
+  height: 38px;
   background: white;
   border-radius: 50%;
   display: flex;
@@ -138,5 +158,14 @@ export default {
   justify-content: center;
   color: var(--color-primary);
   cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.profile-icon:hover {
+  transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+  .header-nav { display: none; }
 }
 </style>
