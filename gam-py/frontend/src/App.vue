@@ -1,42 +1,35 @@
 <template>
   <div id="app">
-    <nav>
-      <router-link to="/">Início</router-link> |
-      <router-link to="/sobre">Sobre</router-link> |
-      <router-link to="/login">Login</router-link> |
-      <router-link to="/tutorial">Tutorial</router-link>
-    </nav>
-    
+    <AppNavbar v-if="!hideNavbar" />
+
     <router-view/>
   </div>
 </template>
 
 <script>
+import AppNavbar from './components/Navbar.vue'
+
 export default {
-  name: 'App'
+  name: 'App',
+  components: {
+    AppNavbar
+  },
+  computed: {
+    hideNavbar() {
+      const hiddenRoutes = ['login', 'cadastro']; 
+      return hiddenRoutes.includes(this.$route.name);
+    }
+  }
 }
 </script>
 
 <style>
-/* Seu CSS original */
+
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+  padding-top: var(--header-height);
 }
 
-nav {
-  padding: 30px;
-}
-
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-nav a.router-link-exact-active {
-  color: #42b983;
+body:has(#app > .app-header[style*="display: none"]) {
+   padding-top: 0;
 }
 </style>
