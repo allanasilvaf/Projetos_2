@@ -1,0 +1,77 @@
+import os
+import time
+
+os.environ["GOOGLE_API_KEY"] = "AIzaSyCk5hqGBBvVWsW5qm0pg3hfpbhOld6H8DY"
+
+#importações
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+#huggingFace roda local no Colab(ilimitado) tive problemas c/ erro 429 da api do gemini
+from langchain_huggingface import HuggingFaceEmbeddings 
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_community.vectorstores import FAISS
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.prompts import ChatPromptTemplate
+
+def iniciar_gam_py():
+    print("Iniciando o Gambot! Aguarde um pouquinho!")
+    
+    #P/encontrar arquivos
+    arquivos = [f for f in os.listdir('.') if f.endswith('.pdf')]
+    if not arquivos:
+        print("Nenhum PDF encontrado. Arraste os arquivos para a pastinha!")
+        return None
+
+    #Le arquivos
+    docs = []
+    for arq in arquivos:
+        try:
+            print(f"Lendo arquivo: {arq}...")
+            loader = PyPDFLoader(arq)
+            docs.extend(loader.load())
+        except Exception as e:
+            print(f"Erro ao ler {arq}: {e}")
+
+    if not docs: return None
+
+    #Divide texto
+    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    splits = splitter.split_documents(docs)
+
+    print("Criando memória local...")
+    #baixa p o Colab e roda aqui mesmo
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    
+    try:
+        vectorstore = FAISS.from_documents(splits, embeddings)
+        print("Memória criada com sucesso!")
+        return vectorstore
+    except Exception as e:
+        print(f"Erro ao criar memória: {e}")
+        return None
+
+db = iniciar_gam_py()
+
+if db:
+    #prepara a resposta(gemini)
+    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
+    
+    prompt = ChatPromptTemplate.from_messages([
+        ("system", "Você é o assistente virtual do site Gam.py e deve ajudar os alunos do curso de Engenharia da UFPA. Use o contexto abaixo para responder as dúvidas. Se não souber, diga que não consta no regulamento/grade.\n\nContexto:\n{context}"),
+        ("human", "{input}"),
+    ])
+    
+    chain = create_retrieval_chain(db.as_retriever(), create_stuff_documents_chain(llm, prompt))
+    print("Gambot online!")
+    
+    while True:
+        pergunta = input("\nVocê: ")
+        if pergunta.lower() in ['sair', 'exit']: break
+        
+        print("Pensando...")
+        try:
+            res = chain.invoke({"input": pergunta})
+            print(f"Gam.py: {res['answer']}")
+        except Exception as e:
+            print(f"Erro na resposta: {e}")
