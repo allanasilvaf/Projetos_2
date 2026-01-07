@@ -1,77 +1,178 @@
+!pip uninstall -y langchain langchain-community langchain-core google-generativeai langchain-google-genai faiss-cpu pypdf || true
+!pip install -q -U --force-reinstall google-generativeai langchain-google-genai langchain>=0.2.0 langchain-community langchain-core faiss-cpu pypdf sentence-transformers
+
+"""!pip show langchain"""
+
 import os
-import time
+import getpass
+from langchain_google_genai import ChatGoogleGenerativeAI
+#importação p rodar local:
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
-os.environ["GOOGLE_API_KEY"] = "AIzaSyCk5hqGBBvVWsW5qm0pg3hfpbhOld6H8DY"
+#api key se ja tiver ou nn no ambiente
+if "GOOGLE_API_KEY" not in os.environ:
+    os.environ["GOOGLE_API_KEY"] = "Chave_aqui" # !!!!!!!!!! aq entra a api key, da p usar o getpass se preferir
 
-#importações
+#Gemini
+llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.3)
+
+#le a memoria usando o processador do colab pq tava dando erro 429
+print("carregando leitura local...")
+embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+print("modelos configurados!")
+
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-#huggingFace roda local no Colab(ilimitado) tive problemas c/ erro 429 da api do gemini
-from langchain_huggingface import HuggingFaceEmbeddings 
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_community.vectorstores import FAISS
+
+#arquivos necessários (tão no github)
+pdf_files = ["Regulamento_de_Graduacao.pdf", "engcomp-grade.pdf"]
+all_documents = []
+
+print("Carregando PDFs...")
+for pdf in pdf_files:
+    if os.path.exists(pdf):
+        loader = PyPDFLoader(pdf)
+        docs = loader.load()
+        all_documents.extend(docs)
+        print(f"{pdf} carregado ({len(docs)} páginas).")
+    else:
+        print(f"Arquivo não encontrado: {pdf} (Verifique o upload na aba lateral!)")
+
+if all_documents:
+    #p dividir o texto
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    splits = text_splitter.split_documents(all_documents)
+
+    print(f"Processando {len(splits)} trechos do arquivo...aguarde 1 segundo!")
+
+    vectorstore = FAISS.from_documents(documents=splits, embedding=embeddings)
+else:
+    print("Nenhum documento carregado.")
+
+#Tentativa 1 com o langchain.chains, deu erro...
+"""import google.generativeai as genai
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
+import os
+from google.colab import userdata
 
-def iniciar_gam_py():
-    print("Iniciando o Gambot! Aguarde um pouquinho!")
-    
-    #P/encontrar arquivos
-    arquivos = [f for f in os.listdir('.') if f.endswith('.pdf')]
-    if not arquivos:
-        print("Nenhum PDF encontrado. Arraste os arquivos para a pastinha!")
-        return None
+print("Configurando o Gambot!")
 
-    #Le arquivos
-    docs = []
-    for arq in arquivos:
-        try:
-            print(f"Lendo arquivo: {arq}...")
-            loader = PyPDFLoader(arq)
-            docs.extend(loader.load())
-        except Exception as e:
-            print(f"Erro ao ler {arq}: {e}")
+try:
+    #tenta pegar a api key
+    os.environ["GOOGLE_API_KEY"] = userdata.get('GOOGLE_API_KEY')
+except:
+    #se nn tiver, pode colar aq
+    if "GOOGLE_API_KEY" not in os.environ:
+        os.environ["GOOGLE_API_KEY"] = "Chave_aqui"
 
-    if not docs: return None
+if not os.environ.get("GOOGLE_API_KEY") or "Chave_aqui" in os.environ["GOOGLE_API_KEY"]:
+    raise Exception("Você precisa colocar sua api key no código.")
 
-    #Divide texto
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    splits = splitter.split_documents(docs)
+llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.3)
+print(f"Modelo fixado: gemini-1.5-flash")
 
-    print("Criando memória local...")
-    #baixa p o Colab e roda aqui mesmo
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    
-    try:
-        vectorstore = FAISS.from_documents(splits, embeddings)
-        print("Memória criada com sucesso!")
-        return vectorstore
-    except Exception as e:
-        print(f"Erro ao criar memória: {e}")
-        return None
 
-db = iniciar_gam_py()
+system_prompt = (
+    "Você é o Gambot, o chatbot oficial do projeto Gam.py, um assistente acadêmico da UFPA. "
+    "Use os contextos abaixo para responder à dúvida do aluno de forma clara e útil. "
+    "Se a informação não estiver no contexto, diga educadamente que não encontrou nos documentos oficiais."
+    "\n\n"
+    "CONTEXTO OFICIAL \n"
+    "{context}"
+)
 
-if db:
-    #prepara a resposta(gemini)
-    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
-    
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", "Você é o assistente virtual do site Gam.py e deve ajudar os alunos do curso de Engenharia da UFPA. Use o contexto abaixo para responder as dúvidas. Se não souber, diga que não consta no regulamento/grade.\n\nContexto:\n{context}"),
+prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", system_prompt),
         ("human", "{input}"),
-    ])
-    
-    chain = create_retrieval_chain(db.as_retriever(), create_stuff_documents_chain(llm, prompt))
-    print("Gambot online!")
-    
-    while True:
-        pergunta = input("\nVocê: ")
-        if pergunta.lower() in ['sair', 'exit']: break
-        
-        print("Pensando...")
-        try:
-            res = chain.invoke({"input": pergunta})
-            print(f"Gam.py: {res['answer']}")
-        except Exception as e:
-            print(f"Erro na resposta: {e}")
+    ]
+)
+
+if 'vectorstore' in globals():
+    question_answer_chain = create_stuff_documents_chain(llm, prompt)
+    retriever = vectorstore.as_retriever(search_kwargs={"k": 5})
+    rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+
+    print(f"\n Gambot pronto!")
+
+    print("testando pergunta...")
+    try:
+        response = rag_chain.invoke({"input": "Quantas horas complementares preciso?"})
+        print(f"\n Resposta do Gambot:\n{response['answer']}")
+    except Exception as e:
+        print(f"Erro no teste: {e}")
+else:
+    print("Erro: O vectorstore sumiu.Roda a célula que cria o banco de dados (antes dessa)") """
+
+#Isso é p caso o colab dê erro c a versão do gemini (ocorre c frequência risos)
+
+"""import google.generativeai as genai
+import os
+from google.colab import userdata
+
+os.environ["GOOGLE_API_KEY"] = "Chave_aqui"
+
+genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+
+print("Versão do google-genai instalada:", genai.__version__)
+print("\nModelos disponíveis:")
+for m in genai.list_models():
+    if 'generateContent' in m.supported_generation_methods:
+        print(m.name) """
+
+#Esse é sem usar o langhain.chains. Ele deu muito problema, então optei por oficialmente deixar assim por hora
+ 
+import google.generativeai as genai
+import os
+
+print("Configurando Gambot...")
+
+os.environ["GOOGLE_API_KEY"] = "Chave_aqui"
+genai.configure(api_key=os.environ["GOOGLE_API_KEY"])
+
+model = genai.GenerativeModel('gemini-flash-latest')
+
+#faz a busca e procura manualmente, sem o langchain.chains 
+def perguntar_ao_gampy(pergunta):
+    #ve se o banco de dados existe
+    if 'vectorstore' not in globals():
+        return "O vectorstore sumiu. Roda a célula que lê o PDF novamente."
+
+    print(f"Pesquisando no PDF sobre: '{pergunta}'...")
+
+    #5 trechos mais relevantes do PDF
+    docs = vectorstore.similarity_search(pergunta, k=5)
+
+    #Junta o texto desses trechos numa string só
+    contexto = "\n\n".join([doc.page_content for doc in docs])
+
+    #Cria o Prompt
+    prompt_final = f"""
+    Você é o assistente Gambot do projeto Gam.py da UFPA.
+    Use as informações abaixo para responder à pergunta do usuário.
+    Se a resposta não estiver no texto, diga que não sabe.
+
+    INFORMAÇÃO DO PDF
+    {contexto}
+
+    PERGUNTA DO USUÁRIO
+    {pergunta}
+    """
+
+    #resposta
+    response = model.generate_content(prompt_final)
+    return response.text
+
+print("Gambot está pronto!")
+
+#testesss
+#Pode mudar a pergunta aqui embaixo
+resposta = perguntar_ao_gampy("Qual o objetivo desse projeto?")
+print("\n" + "-"*40)
+print("Resposta do Gambot:")
+print(resposta)
+print("-"*40) 
