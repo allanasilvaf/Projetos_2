@@ -1,17 +1,12 @@
 <template>
-  <div id="app" class="min-h-screen bg-bg-body text-dark font-sans antialiased">
-    
+  <div id="app">
     <AppNavbar v-if="!hideNavbar" />
 
-    <main :class="{ 'pt-[80px]': !hideNavbar }">
-      <router-view/>
-    </main>
-    
+    <router-view/>
   </div>
 </template>
 
 <script>
-// CONFIRA: Se o arquivo na pasta components se chama 'Navbar.vue' ou 'AppNavbar.vue'
 import AppNavbar from './components/Navbar.vue'
 
 export default {
@@ -21,19 +16,25 @@ export default {
   },
   computed: {
     hideNavbar() {
-      // Adicionei uma proteção (|| '') caso a rota ainda esteja carregando
-      const currentRoute = this.$route.name || '';
       const hiddenRoutes = ['login', 'cadastro']; 
-      return hiddenRoutes.includes(currentRoute);
+      return hiddenRoutes.includes(this.$route.name);
     }
   }
 }
 </script>
 
 <style>
-/* Mantivemos sua barra de rolagem personalizada aqui 
-   (Global, sem 'scoped', para funcionar no navegador todo)
-*/
+
+#app {
+  padding-top: var(--header-height);
+}
+
+body:has(#app > .app-header[style*="display: none"]) {
+   padding-top: 0;
+}
+</style>
+
+<style>
 
 ::-webkit-scrollbar {
   width: 10px;
@@ -47,6 +48,7 @@ export default {
 ::-webkit-scrollbar-thumb {
   background-color: #a5c9a3; 
   border-radius: 10px;       
+
   border: 2px solid #f4f6f8; 
 }
 
