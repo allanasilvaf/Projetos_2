@@ -10,7 +10,7 @@ $data = json_decode(file_get_contents("php://input"));
 if (!empty($data->nome) && !empty($data->email) && !empty($data->senha)) {
     
     // Verificar se email já existe
-    $check_email = "SELECT id FROM usuarios WHERE email = ?";
+    $check_email = "SELECT id FROM usuario WHERE email = ?";
     $stmt = $conn->prepare($check_email);
     $stmt->bind_param("s", $data->email);
     $stmt->execute();
@@ -28,7 +28,7 @@ if (!empty($data->nome) && !empty($data->email) && !empty($data->senha)) {
     $senha_hash = password_hash($data->senha, PASSWORD_DEFAULT);
     
     // Preparar query
-    $query = "INSERT INTO usuarios (
+    $query = "INSERT INTO usuario (
         nome, 
         sobrenome, 
         email, 

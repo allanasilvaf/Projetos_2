@@ -3,259 +3,164 @@ export default {
   data() {
     return {
       form: {
-        nome: '',
-        sobrenome: '',
         email: '',
-        cpf: '',
-        senha: '',
-        confirmarSenha: '',
-        tipo: 'estudante',
-        telefone: '',
-        data_nascimento: '',
-        curso_id: ''
+        password: ''
       },
       loading: false,
       error: '',
-      cursos: [] // Para carregar cursos do banco
+      showDemoCredentials: false // Adicione esta linha
     }
   },
-  async mounted() {
-    // Carregar cursos disponíveis
-    await this.loadCursos();
-  },
   methods: {
-    async loadCursos() {
-      try {
-        const response = await fetch('http://localhost:8000/api/cursos.php');
-        if (response.ok) {
-          this.cursos = await response.json();
-        }
-      } catch (error) {
-        console.error('Erro ao carregar cursos:', error);
-      }
-    },
-    
-    async handleCadastro() {
-      // Validações
-      if (this.form.senha !== this.form.confirmarSenha) {
-        this.error = 'As senhas não conferem!';
-        return;
-      }
-      
-      if (this.form.senha.length < 6) {
-        this.error = 'A senha deve ter no mínimo 6 caracteres';
-        return;
-      }
-      
+async handleLogin() {
       this.loading = true;
       this.error = '';
       
       try {
-        const response = await fetch('http://localhost:8000/api/register.php', {
+        // 1. Conexão com a API
+        const response = await fetch('http://localhost:9000/api/login.php', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
             'Accept': 'application/json'
           },
-          body: JSON.stringify(this.form)
+          body: JSON.stringify({
+            email: this.form.email,
+            senha: this.form.password
+          })
         });
         
-        const data = await response.json();
+        // 2. Transforma a resposta em texto primeiro para debug
+        const text = await response.text();
+        console.log("Resposta bruta do servidor:", text);
+
+        // Tenta converter para JSON
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            throw new Error("O servidor não retornou um JSON válido. Veja o console.");
+        }
         
+        // --- AQUI ESTAVA O PROBLEMA ---
+        
+        // CASO 1: Erro crítico do Banco (ex: senha errada no database.php)
+        if (data.error) {
+          this.error = data.error;
+          alert("ERRO DE SISTEMA: " + data.error); // Usamos alert em vez de toast
+          return;
+        }
+
+        // CASO 2: Login Sucesso
         if (data.success) {
-          this.$toast.success('Cadastro realizado com sucesso!', {
-            position: 'top-right',
-            duration: 3000
-          });
+          localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('token', 'fake_token_' + Date.now());
           
-          // Redirecionar para login após 2 segundos
-          setTimeout(() => {
-            this.$router.push('/login');
-          }, 2000);
+          // Redireciona
+          this.redirectUser(data.user.tipo);
+          
         } else {
-          this.error = data.message || 'Erro no cadastro';
-          this.$toast.error(this.error);
+          // CASO 3: Senha ou Email incorretos (Lógica de negócio)
+          this.error = data.message || 'Email ou senha incorretos';
+          alert("Atenção: " + this.error); // Usamos alert em vez de toast
         }
         
       } catch (error) {
-        console.error('Erro:', error);
-        this.error = 'Erro de conexão com o servidor';
+        console.error('Erro completo:', error);
+        this.error = 'Erro de conexão ou servidor';
+        alert("Erro técnico: " + error.message); // Usamos alert em vez de toast
       } finally {
         this.loading = false;
       }
     },
     
-    formatCPF() {
-      // Formatar CPF automaticamente: 000.000.000-00
-      let cpf = this.form.cpf.replace(/\D/g, '');
-      if (cpf.length > 3) cpf = cpf.substring(0,3) + '.' + cpf.substring(3);
-      if (cpf.length > 7) cpf = cpf.substring(0,7) + '.' + cpf.substring(7);
-      if (cpf.length > 11) cpf = cpf.substring(0,11) + '-' + cpf.substring(11,13);
-      this.form.cpf = cpf.substring(0,14);
-    },
-    
-    formatTelefone() {
-      // Formatar telefone: (00) 00000-0000
-      let tel = this.form.telefone.replace(/\D/g, '');
-      if (tel.length > 0) tel = '(' + tel.substring(0,2) + ') ' + tel.substring(2);
-      if (tel.length > 10) tel = tel.substring(0,10) + '-' + tel.substring(10);
-      this.form.telefone = tel.substring(0,15);
+    redirectUser(tipo) {
+      switch(tipo) {
+        case 'professor':
+          this.$router.push('/professor/dashboard');
+          break;
+        case 'admin':
+          this.$router.push('/admin/dashboard');
+          break;
+        default:
+          this.$router.push('/dashboard');
+      }
     }
+  },
+  mounted() {
+    // REMOVA estas linhas que preenchem automaticamente:
+    // this.form.email = 'professor@faculdade.edu';
+    // this.form.password = '123456';
   }
 }
 </script>
 
 <template>
-  <div class="cadastro-container">
-    <h2>📝 Cadastro de Novo Usuário</h2>
+  <div class="login-container">
+    <h2>🔐 Login GAM</h2>
     
-    <form @submit.prevent="handleRegister">
-      <div class="form-row">
-        <div class="form-group">
-          <label>Nome *</label>
-          <input 
-            type="text" 
-            v-model="form.nome" 
-            placeholder="Digite seu nome"
-            required
-          >
-        </div>
-        
-        <div class="form-group">
-          <label>Sobrenome *</label>
-          <input 
-            type="text" 
-            v-model="form.sobrenome" 
-            placeholder="Digite seu sobrenome"
-            required
-          >
-        </div>
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <label>Email *</label>
-          <input 
-            type="email" 
-            v-model="form.email" 
-            placeholder="seu@email.com"
-            required
-          >
-        </div>
-        
-        <div class="form-group">
-          <label>CPF *</label>
-          <input 
-            type="text" 
-            v-model="form.cpf" 
-            @input="formatCPF"
-            placeholder="000.000.000-00"
-            maxlength="14"
-            required
-          >
-        </div>
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <label>Senha *</label>
-          <input 
-            type="password" 
-            v-model="form.senha" 
-            placeholder="Mínimo 6 caracteres"
-            minlength="6"
-            required
-          >
-        </div>
-        
-        <div class="form-group">
-          <label>Confirmar Senha *</label>
-          <input 
-            type="password" 
-            v-model="form.confirmarSenha" 
-            placeholder="Digite a senha novamente"
-            required
-          >
-        </div>
-      </div>
-      
-      <div class="form-row">
-        <div class="form-group">
-          <label>Telefone</label>
-          <input 
-            type="text" 
-            v-model="form.telefone" 
-            @input="formatTelefone"
-            placeholder="(00) 00000-0000"
-          >
-        </div>
-        
-        <div class="form-group">
-          <label>Data de Nascimento</label>
-          <input 
-            type="date" 
-            v-model="form.data_nascimento"
-          >
-        </div>
+    <form @submit.prevent="handleLogin">
+      <div class="form-group">
+        <label>Email:</label>
+        <input 
+          type="email" 
+          v-model="form.email" 
+          placeholder="seu@email.com"
+          required
+          autocomplete="email"
+        >
       </div>
       
       <div class="form-group">
-        <label>Tipo de Usuário *</label>
-        <div class="radio-group">
-          <label>
-            <input 
-              type="radio" 
-              v-model="form.tipo" 
-              value="estudante"
-              checked
-            >
-            <span>👨‍🎓 Estudante</span>
-          </label>
-          
-          <label>
-            <input 
-              type="radio" 
-              v-model="form.tipo" 
-              value="professor"
-            >
-            <span>👨‍🏫 Professor</span>
-          </label>
-          
-          <label v-if="isAdminPage"> <!-- Apenas se for admin cadastrando -->
-            <input 
-              type="radio" 
-              v-model="form.tipo" 
-              value="admin"
-            >
-            <span>👑 Admin</span>
-          </label>
-        </div>
+        <label>Senha:</label>
+        <input 
+          type="password" 
+          v-model="form.password" 
+          placeholder="Digite sua senha"
+          required
+          autocomplete="current-password"
+        >
       </div>
       
-      <div v-if="form.tipo === 'estudante'" class="form-group">
-        <label>Curso</label>
-        <select v-model="form.curso_id">
-          <option value="">Selecione um curso</option>
-          <option v-for="curso in cursos" :key="curso.id" :value="curso.id">
-            {{ curso.nome }}
-          </option>
-        </select>
+      <div class="form-footer">
+        <router-link to="/forgot-password" class="forgot-password">
+          Esqueceu a senha?
+        </router-link>
       </div>
+      
+      <button type="submit" :disabled="loading" class="btn-primary">
+        {{ loading ? 'Entrando...' : 'Entrar' }}
+      </button>
       
       <div v-if="error" class="error-message">
         {{ error }}
       </div>
       
-      <button type="submit" :disabled="loading" class="btn-primary">
-        {{ loading ? 'Cadastrando...' : 'Finalizar Cadastro' }}
-      </button>
-      
-      <div class="login-link">
-        <p>Já tem uma conta? 
-          <router-link to="/login">Faça login aqui</router-link>
-        </p>
+      <!-- Botão para mostrar credenciais de teste (opcional) -->
+      <div class="demo-section">
+        <button 
+          type="button" 
+          @click="showDemoCredentials = !showDemoCredentials"
+          class="btn-secondary"
+        >
+          {{ showDemoCredentials ? 'Ocultar' : 'Mostrar' }} credenciais de teste
+        </button>
+        
+        <div v-if="showDemoCredentials" class="demo-credentials">
+          <p><small><strong>Atenção:</strong> Apenas para desenvolvimento</small></p>
+          <p><small>👨‍🏫 Professor: professor@faculdade.edu | prof123</small></p>
+          <p><small>👨‍🎓 Aluno: aluno@faculdade.edu | aluno123</small></p>
+          <p><small>👑 Admin: admin@faculdade.edu | admin123</small></p>
+        </div>
       </div>
     </form>
+    
+    <div class="cadastro-section">
+      <p>Não tem uma conta?</p>
+      <router-link to="/cadastro" class="btn-register">
+        Cadastre-se aqui
+      </router-link>
+    </div>
     
     <router-link to="/" class="back-link">
       ← Voltar para Home
@@ -264,88 +169,167 @@ export default {
 </template>
 
 <style scoped>
-.cadastro-container {
-  max-width: 600px;
-  margin: 30px auto;
+.login-container {
+  max-width: 400px;
+  margin: 50px auto;
   padding: 30px;
   background: #f8f9fa;
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+.form-group {
   margin-bottom: 20px;
-}
-
-@media (max-width: 600px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   font-weight: 600;
   color: #333;
 }
 
-.form-group input,
-.form-group select {
+.form-group input {
   width: 100%;
   padding: 12px;
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 16px;
+  transition: border-color 0.3s;
 }
 
-.radio-group {
-  display: flex;
-  gap: 20px;
-  margin-top: 10px;
+.form-group input:focus {
+  outline: none;
+  border-color: #42b983;
+  box-shadow: 0 0 0 2px rgba(66, 185, 131, 0.1);
 }
 
-.radio-group label {
+.form-footer {
   display: flex;
-  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.forgot-password {
+  font-size: 14px;
+  color: #666;
+  text-decoration: none;
+}
+
+.forgot-password:hover {
+  color: #42b983;
+  text-decoration: underline;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: #42b983;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  font-weight: normal;
+  transition: background 0.3s, transform 0.1s;
 }
 
-.radio-group input[type="radio"] {
-  width: auto;
-  margin-right: 8px;
+.btn-primary:hover:not(:disabled) {
+  background: #3aa876;
+  transform: translateY(-1px);
 }
 
-.radio-group span {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  width: 100%;
+  padding: 10px;
+  background: #e9ecef;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: background 0.3s;
+}
+
+.btn-secondary:hover {
+  background: #dee2e6;
 }
 
 .error-message {
-  margin: 20px 0;
+  margin-top: 15px;
   padding: 12px;
   background: #ffebee;
   color: #c62828;
   border-radius: 6px;
+  font-size: 14px;
 }
 
-.login-link {
+.demo-section {
   margin-top: 20px;
+}
+
+.demo-credentials {
+  margin-top: 10px;
+  padding: 15px;
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #856404;
+}
+
+.demo-credentials p {
+  margin: 5px 0;
+}
+
+.cadastro-section {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
   text-align: center;
+}
+
+.cadastro-section p {
+  margin-bottom: 10px;
   color: #666;
 }
 
-.login-link a {
-  color: #42b983;
+.btn-cadastro {
+  display: inline-block;
+  padding: 10px 20px;
+  background: #3498db;
+  color: white;
+  border-radius: 6px;
   text-decoration: none;
+  font-weight: 600;
+  transition: background 0.3s;
 }
 
-.login-link a:hover {
+.btn-cadastro:hover {
+  background: #2980b9;
+}
+
+.back-link {
+  display: block;
+  margin-top: 20px;
+  text-align: center;
+  color: #666;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.back-link:hover {
+  color: #42b983;
   text-decoration: underline;
 }
 </style>

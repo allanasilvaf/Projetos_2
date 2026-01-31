@@ -13,7 +13,7 @@ $conn = getConnection();
 // limpar a tabela de usuários 
 echo "Limpando usuários antigos...\n";
 $conn->query("SET FOREIGN_KEY_CHECKS = 0");
-$conn->query("TRUNCATE TABLE usuarios");
+$conn->query("TRUNCATE TABLE usuario");
 $conn->query("SET FOREIGN_KEY_CHECKS = 1");
 
 // senhas criptografadas pelo PHP
@@ -42,7 +42,7 @@ $usuarios = [
 ];
 
 // inserir bd
-$stmt = $conn->prepare("INSERT INTO usuarios (nome, email, senha, tipo, matricula) VALUES (?, ?, ?, ?, ?)");
+$stmt = $conn->prepare("INSERT INTO usuario (nome, email, senha, tipo, matricula) VALUES (?, ?, ?, ?, ?)");
 
 foreach ($usuarios as $user) {
     $senhaHash = password_hash($user['senha'], PASSWORD_DEFAULT);

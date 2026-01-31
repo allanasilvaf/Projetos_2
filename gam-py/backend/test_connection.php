@@ -8,14 +8,14 @@ try {
     echo "✅ Conexão estabelecida!\n\n";
     
     // Testar consulta
-    echo "📊 Testando consulta à tabela 'usuarios'...\n";
-    $result = $conn->query("SELECT COUNT(*) as total FROM usuarios");
+    echo "📊 Testando consulta à tabela 'usuario'...\n";
+    $result = $conn->query("SELECT COUNT(*) as total FROM usuario");
     $row = $result->fetch_assoc();
     echo "   Total de usuários: " . $row['total'] . "\n\n";
     
     // Listar usuários
     echo "👥 Listando usuários:\n";
-    $result = $conn->query("SELECT id, nome, email, tipo, LEFT(senha, 30) as hash FROM usuarios");
+    $result = $conn->query("SELECT id, nome, email, tipo, LEFT(senha, 30) as hash FROM usuario");
     while ($row = $result->fetch_assoc()) {
         echo "   - ID: " . $row['id'] . " | " . $row['email'] . " (" . $row['tipo'] . ")\n";
         echo "     Hash: " . $row['hash'] . "...\n";

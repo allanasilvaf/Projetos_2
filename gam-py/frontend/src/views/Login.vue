@@ -18,7 +18,7 @@ async handleLogin() {
       
       try {
         // 1. Conexão com a API
-        const response = await fetch('http://localhost:8000/api/login.php', {
+        const response = await fetch('http://localhost:9000/login.php', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
@@ -53,11 +53,11 @@ async handleLogin() {
 
         // CASO 2: Login Sucesso
         if (data.success) {
-          localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('user', JSON.stringify(data.usuario));
           localStorage.setItem('token', 'fake_token_' + Date.now());
           
           // Redireciona
-          this.redirectUser(data.user.tipo);
+          this.redirectUser(data.usuario.tipo);
           
         } else {
           // CASO 3: Senha ou Email incorretos (Lógica de negócio)
