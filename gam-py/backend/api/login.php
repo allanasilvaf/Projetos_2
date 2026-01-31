@@ -1,6 +1,6 @@
 <?php
 // Headers CORS CORRETOS para Vue.js na porta 5173
-header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Origin: http://localhost:5174");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Accept, Authorization, X-Requested-With");
@@ -78,7 +78,7 @@ try {
     echo json_encode([
         "success" => true,
         "message" => "Login realizado com sucesso!",
-        "user" => $user  // ← "user" (inglês)
+        "usuario" => $user  // ← "user" (inglês)
     ]);
     
 } catch (Exception $e) {

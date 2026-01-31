@@ -18,7 +18,7 @@ async handleLogin() {
       
       try {
         // 1. Conexão com a API
-        const response = await fetch('http://localhost:9000/login.php', {
+        const response = await fetch('http://localhost:9000/api/login.php', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
