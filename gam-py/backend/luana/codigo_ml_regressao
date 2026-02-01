@@ -30,7 +30,7 @@ def carregar_e_treinar():
     modelo.fit(X_train_scaled, y_train)
     
     acc = accuracy_score(y_test, modelo.predict(X_test_scaled))
-    print(f"Sistema inicializado. Acurácia do modelo: {acc*100:.2f}%")
+    print(f"Acurácia do modelo: {acc*100:.2f}%")
     
     return modelo, scaler, X.columns.tolist()
 
@@ -41,7 +41,7 @@ def analisar_risco(modelo, scaler, colunas_esperadas):
     nomes_amigaveis = {
         'media_disciplina': 'Baixa média nas notas',
         'distancia_km': 'Grande distância de deslocamento',
-        'horas_estudo_diaria': 'Poucas horas de estudo diário',
+        'horas_estudo_diaria': 'Poucas horas de estudo diárias',
         'frequencia_percentual': 'Baixa frequência nas aulas',
         'qtd_aulas_disciplina': 'Alta carga horária da disciplina',
         'total_materias_semestre': 'Sobrecarga de matérias no semestre',
@@ -59,7 +59,7 @@ def analisar_risco(modelo, scaler, colunas_esperadas):
             'horas_estudo_diaria': float(input("Horas de estudo diárias: ").replace(',', '.')),
             'frequencia_percentual': float(input("Frequência atual (%): ").replace(',', '.')),
             'qtd_aulas_disciplina': int(input("Total de aulas (36, 72, 108): ")),
-            'total_materias_semestre': int(input("Matérias no semestre: ")),
+            'total_materias_semestre': int(input("Quantidade de matérias no semestre: ")),
             'trabalha': 1 if input("Trabalha? (S/N): ").upper() == 'S' else 0,
             'tem_filhos': 1 if input("Tem filhos? (S/N): ").upper() == 'S' else 0,
             'entendimento_conteudo': int(input("Nível de entendimento (1-5): "))
