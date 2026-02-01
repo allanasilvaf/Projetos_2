@@ -1,6 +1,6 @@
 <?php
 function getConnection() {
-    $host = 'localhost';
+    $host = 'mysql';
     $db = 'gampy';
     $user = 'gam_user';    // ← CORRETO
     $pass = 'gampy0';      // ← CORRETO
