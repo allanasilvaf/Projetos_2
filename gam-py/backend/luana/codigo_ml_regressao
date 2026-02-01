@@ -44,35 +44,31 @@ def analisar_risco(modelo, scaler, colunas_esperadas):
         return
 
     nomes_amigaveis = {
-        'media_disciplina': 'Baixa média nas notas',
         'distancia_km': 'Grande distância de deslocamento',
         'horas_estudo_diaria': 'Poucas horas de estudo diárias',
         'frequencia_percentual': 'Baixa frequência nas aulas',
         'qtd_aulas_disciplina': 'Alta carga horária da disciplina',
         'total_materias_semestre': 'Sobrecarga de matérias no semestre',
         'trabalha': 'Acúmulo de trabalho e estudos',
-        'tem_filhos': 'Responsabilidades familiares (filhos)',
-        'entendimento_conteudo': 'Dificuldade de compreensão do conteúdo'
+        'tem_filhos': 'Responsabilidades familiares (filhos)'
     }
 
     print("FERRAMENTA DE ANÁLISE DE RISCO")
 
     try:
         inputs = {
-            'media_disciplina': float(input("Média atual (0-10): ").replace(',', '.')),
             'distancia_km': float(input("Distância casa-faculdade (km): ").replace(',', '.')),
             'horas_estudo_diaria': float(input("Horas de estudo diárias: ").replace(',', '.')),
             'frequencia_percentual': float(input("Frequência atual (%): ").replace(',', '.')),
             'qtd_aulas_disciplina': int(input("Total de aulas (36, 72, 108): ")),
             'total_materias_semestre': int(input("Quantidade de matérias no semestre: ")),
             'trabalha': 1 if input("Trabalha? (S/N): ").upper() == 'S' else 0,
-            'tem_filhos': 1 if input("Tem filhos? (S/N): ").upper() == 'S' else 0,
-            'entendimento_conteudo': int(input("Nível de entendimento (1-5): "))
+            'tem_filhos': 1 if input("Tem filhos? (S/N): ").upper() == 'S' else 0
         }
 
-        if inputs['frequencia_percentual'] < 75 or inputs['media_disciplina'] < 5:
-            print("\n" + "!"*10 + " RESULTADO: REPROVADO " + "!"*10)
-            print("Motivo: Critérios mínimos (frequência ou nota) não atingidos.")
+        if inputs['frequencia_percentual'] < 75:
+            print("RESULTADO: REPROVADO")
+            print("Motivo: Critérios mínimos (frequência) não atingidos.")
             return
 
         dados_aluno = pd.DataFrame([inputs])[colunas_esperadas]
