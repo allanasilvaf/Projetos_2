@@ -1,5 +1,87 @@
+<template>
+  <div class="login-container">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="logo">
+          <h1>Login</h1>
+          <p class="subtitle">Bem-vindo de volta! Acesse sua conta.</p>
+        </div>
+      </div>
+
+      <div v-if="error" class="error-message">
+        <span class="status-icon">⚠️</span>
+        <span>{{ error }}</span>
+      </div>
+
+      <form @submit.prevent="handleLogin" class="login-form">
+        <div class="form-stack">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <input 
+                type="email" 
+                id="email" 
+                v-model="form.email" 
+                placeholder="seu@email.com" 
+                required 
+                :disabled="loading"
+              >
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Senha</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <input 
+                type="password" 
+                id="password" 
+                v-model="form.password" 
+                placeholder="Sua senha" 
+                required 
+                :disabled="loading"
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="form-options">
+          <router-link to="/Forgotpassword" class="forgot-password">
+            Esqueceu a senha?
+          </router-link>
+        </div>
+
+        <button type="submit" :disabled="loading" class="btn-primary" :class="{ 'loading': loading }">
+          <span v-if="loading" class="btn-loading">
+            <span class="spinner"></span> Autenticando...
+          </span>
+          <span v-else>Entrar</span>
+        </button>
+      </form>
+
+      <div class="login-footer">
+        <p>Ainda não tem uma conta?</p>
+        <router-link to="/cadastro" class="btn-secondary">
+          Cadastrar
+        </router-link>
+        <div class="back-home">
+          <router-link to="/" class="back-link">
+            ← Voltar para a Página Inicial
+          </router-link>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script>
 export default {
+  name: 'LoginPage',
   data() {
     return {
       form: {
@@ -14,166 +96,35 @@ export default {
     async handleLogin() {
       this.loading = true;
       this.error = '';
-      
       try {
         const response = await fetch('http://localhost:9000/api/login.php', {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify({
-            email: this.form.email,
-            senha: this.form.password
-          })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: this.form.email, senha: this.form.password })
         });
-        
-        const text = await response.text();
-        console.log("Resposta bruta do servidor:", text);
-
-        let data;
-        try {
-            data = JSON.parse(text);
-        } catch (e) {
-            throw new Error("O servidor não retornou um JSON válido. Veja o console.");
-        }
-        
-        if (data.error) {
-          this.error = data.error;
-          alert("ERRO DE SISTEMA: " + data.error);
-          return;
-        }
-
+        const data = await response.json();
         if (data.success) {
           localStorage.setItem('user', JSON.stringify(data.usuario));
-          localStorage.setItem('token', 'fake_token_' + Date.now());
-          
           this.redirectUser(data.usuario.tipo);
-          
         } else {
-          this.error = data.message || 'Email ou senha incorretos';
-          alert("Atenção: " + this.error);
+          this.error = data.message || 'Credenciais inválidas';
         }
-        
       } catch (error) {
-        console.error('Erro completo:', error);
-        this.error = 'Erro de conexão ou servidor';
-        alert("Erro técnico: " + error.message);
+        this.error = 'Erro na comunicação com o servidor.';
       } finally {
         this.loading = false;
       }
     },
-    
     redirectUser(tipo) {
-      switch(tipo) {
-        case 'professor':
-          this.$router.push('/professor/dashboard');
-          break;
-        case 'admin':
-          this.$router.push('/admin/dashboard');
-          break;
-        default:
-          this.$router.push('/dashboard');
-      }
+      const routes = { 'professor': '/professor/dashboard', 'admin': '/admin/dashboard' };
+      this.$router.push(routes[tipo] || '/dashboard');
     }
   }
 }
 </script>
 
-<template>
-  <div class="login-container">
-    <div class="login-card">
-      <!-- Cabeçalho -->
-      <div class="login-header">
-        <div class="logo">
-          <h1>Login</h1>
-        </div>
-       
-        </div>
-
-            <!-- Formulário -->
-            <form @submit.prevent="handleLogin" class="login-form">
-              <div class="form-group">
-                <label for="email">Email</label>
-                <div class="input-wrapper">
-                  <input 
-                    type="email" 
-                    id="email"
-                    v-model="form.email" 
-                    placeholder="usuário@email.com"
-                    required
-                    autocomplete="email"
-                    :disabled="loading"
-                  >
-                </div>
-              </div>
-
-        <div class="form-group">
-          <label for="password">Senha</label>
-          <div class="input-wrapper">
-            <span class="input-icon">🔒</span>
-            <input 
-              type="password" 
-              id="password"
-              v-model="form.password" 
-              placeholder="Digite sua senha"
-              required
-              autocomplete="current-password"
-              :disabled="loading"
-            >
-          </div>
-        </div>
-
-        <div class="form-options">
-          <router-link to="/forgot-password" class="forgot-password">
-            Esqueceu a senha?
-          </router-link>
-        </div>
-
-        <button 
-          type="submit" 
-          class="btn-login"
-          :disabled="loading"
-          :class="{ 'loading': loading }"
-        >
-          <span v-if="loading" class="btn-loading">
-            <span class="spinner"></span> Entrando...
-          </span>
-          <span v-else>Entrar</span>
-        </button>
-
-        <div v-if="error" class="error-message">
-          <span class="error-icon">⚠️</span>
-          <span>{{ error }}</span>
-        </div>
-      </form>
-
-      <!-- Rodapé -->
-      <div class="login-footer">
-        <p>Não tem uma conta?</p>
-        <router-link to="/cadastro" class="btn-register">
-          Criar Nova Conta
-        </router-link>
-        <div class="back-home">
-          <router-link to="/" class="back-link">
-            ← Voltar para Home
-          </router-link>
-        </div>
-      </div>
-    </div>
-  </div>
-</template>
-
 <style scoped>
-/* Importação da fonte Poppins */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
-}
 
 .login-container {
   min-height: 100vh;
@@ -183,69 +134,46 @@ export default {
   background: linear-gradient(135deg, #2c5530 0%, #4a7c59 50%, #2c5530 100%);
   background-size: 200% 200%;
   animation: gradientAnimation 8s ease infinite;
-  padding:10px;
+  padding: 20px;
+  font-family: 'Poppins', sans-serif;
 }
 
 @keyframes gradientAnimation {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .login-card {
   width: 100%;
-  max-width: 900px;
+  max-width: 750px; /* MESMA LARGURA DO CADASTRO */
   background: white;
   border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   padding: 40px;
 }
 
-/* Cabeçalho */
 .login-header {
   text-align: center;
-  margin-bottom: 40px;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 15px;
-  margin-bottom: 10px;
-}
-
-.logo-icon {
-  font-size: 40px;
+  margin-bottom: 30px;
 }
 
 .login-header h1 {
   color: #2c5530;
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 600;
-  letter-spacing: -0.5px;
 }
 
 .subtitle {
   color: #6b8e6a;
   font-size: 15px;
-  font-weight: 400;
 }
 
-/* Formulário */
-.login-form {
-  margin-bottom: 30px;
-}
-
-.form-group {
-  margin-bottom: 24px;
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
 .form-group label {
@@ -254,6 +182,7 @@ export default {
   color: #2c5530;
   font-weight: 500;
   font-size: 14px;
+  text-align: left;
 }
 
 .input-wrapper {
@@ -262,22 +191,22 @@ export default {
 
 .input-icon {
   position: absolute;
-  left: 16px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 18px;
+  width: 20px;
+  height: 20px;
   color: #6b8e6a;
 }
 
 .form-group input {
   width: 100%;
-  padding: 16px 16px 16px 50px;
+  padding: 14px 14px 14px 45px;
   border: 2px solid #e0e6dc;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 15px;
-  color: #333;
   background: #f8f9f7;
-  transition: all 0.3s ease;
+  transition: all 0.3s;
 }
 
 .form-group input:focus {
@@ -287,203 +216,89 @@ export default {
   box-shadow: 0 0 0 3px rgba(44, 85, 48, 0.1);
 }
 
-.form-group input:disabled {
-  background: #f1f3f0;
-  cursor: not-allowed;
-}
-
 .form-options {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  font-size: 14px;
-}
-
-.remember-me {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.remember-me input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #2c5530;
-}
-
-.remember-me label {
-  color: #6b8e6a;
-  cursor: pointer;
+  justify-content: flex-end;
+  margin-bottom: 25px;
 }
 
 .forgot-password {
-  color: #2c5530;
+  font-size: 13px;
+  color: #4a7c59;
   text-decoration: none;
   font-weight: 500;
-  transition: color 0.3s;
 }
 
-.forgot-password:hover {
-  color: #4a7c59;
-  text-decoration: underline;
-}
-
-/* Botão de Login */
-.btn-login {
+.btn-primary {
   width: 100%;
   padding: 16px;
   background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%);
   color: white;
   border: none;
-  border-radius: 10px;
-  font-size: 16px;
+  border-radius: 12px;
+  font-size: 18px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
-  margin-bottom: 25px;
 }
 
-.btn-login:hover:not(:disabled) {
+.btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(44, 85, 48, 0.3);
+  box-shadow: 0 8px 20px rgba(44, 85, 48, 0.3);
 }
 
-.btn-login:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.btn-login:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: white;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Mensagem de Erro */
 .error-message {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 20px;
   padding: 16px;
   background: #fdeaea;
   color: #c53030;
-  border-radius: 8px;
   border: 1px solid #feb2b2;
-  font-size: 14px;
-  animation: fadeIn 0.3s;
+  border-radius: 10px;
+  margin-bottom: 20px;
 }
 
-.error-icon {
-  font-size: 20px;
-}
-
-/* Rodapé */
 .login-footer {
   text-align: center;
+  margin-top: 35px;
   padding-top: 25px;
-  border-top: 1px solid #e8efe7;
+  border-top: 1px solid #f0f0f0;
 }
 
 .login-footer p {
   color: #6b8e6a;
-  margin-bottom: 16px;
-  font-size: 15px;
+  margin-bottom: 15px;
 }
 
-.btn-register {
+.btn-secondary {
   display: inline-block;
-  padding: 14px 32px;
+  padding: 12px 30px;
   background: #4a7c59;
   color: white;
   text-decoration: none;
   border-radius: 8px;
   font-weight: 600;
-  transition: all 0.3s;
-  margin-bottom: 20px;
-}
-
-.btn-register:hover {
-  background: #3a6b3f;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(74, 124, 89, 0.3);
-}
-
-.back-home {
-  margin-top: 15px;
+  transition: 0.3s;
 }
 
 .back-link {
+  display: block;
+  margin-top: 20px;
   color: #6b8e6a;
   text-decoration: none;
   font-size: 14px;
-  transition: color 0.3s;
 }
 
-.back-link:hover {
-  color: #2c5530;
-  text-decoration: underline;
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
 }
 
-/* Animações */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* Responsividade */
-@media (max-width: 480px) {
-  .login-card {
-    padding: 30px 25px;
-  }
-  
-  .login-header h1 {
-    font-size: 24px;
-  }
-  
-  .logo {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .logo-icon {
-    font-size: 35px;
-  }
-  
-  .form-options {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-}
-
-@media (max-width: 360px) {
-  .login-card {
-    padding: 25px 20px;
-  }
-  
-  .btn-register {
-    padding: 12px 24px;
-    font-size: 14px;
-  }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
