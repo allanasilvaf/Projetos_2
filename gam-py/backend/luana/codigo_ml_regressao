@@ -5,39 +5,44 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
+
 def carregar_e_treinar():
     try:
         df = pd.read_excel('dataset_risco_reprovacao.xlsx')
+        df.columns = df.columns.str.strip()
+
+        mapeamento = {'S': 1, 'N': 0}
+        for col in ['trabalha', 'tem_filhos']:
+            if col in df.columns:
+                df[col] = df[col].astype(str).str.strip().str.upper().map(mapeamento)
+
+        df = df.dropna()
+
+        X = df.drop('reprovado', axis=1)
+        y = df['reprovado']
+
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        modelo = LogisticRegression()
+        modelo.fit(X_train_scaled, y_train)
+
+        acc = accuracy_score(y_test, modelo.predict(X_test_scaled))
+        print(f"Acurácia do modelo: {acc*100:.2f}%")
+
+        return modelo, scaler, X.columns.tolist()
+
     except FileNotFoundError:
         print("Erro: O arquivo 'dataset_risco_reprovacao.xlsx' não foi encontrado.")
         return None, None, None
 
-    mapeamento = {'S': 1, 'N': 0}
-    for col in ['trabalha', 'tem_filhos']:
-        if col in df.columns:
-            df[col] = df[col].map(mapeamento)
-
-    X = df.drop('reprovado', axis=1)
-    y = df['reprovado']
-
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-
-    scaler = StandardScaler()
-    X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
-
-    modelo = LogisticRegression()
-    modelo.fit(X_train_scaled, y_train)
-    
-    acc = accuracy_score(y_test, modelo.predict(X_test_scaled))
-    print(f"Acurácia do modelo: {acc*100:.2f}%")
-    
-    return modelo, scaler, X.columns.tolist()
-
 def analisar_risco(modelo, scaler, colunas_esperadas):
-    if modelo is None: 
+    if modelo is None:
         return
-    
+
     nomes_amigaveis = {
         'media_disciplina': 'Baixa média nas notas',
         'distancia_km': 'Grande distância de deslocamento',
@@ -75,7 +80,7 @@ def analisar_risco(modelo, scaler, colunas_esperadas):
         prob = modelo.predict_proba(dados_scaled)[0][1]
 
         print(f"\nPROBABILIDADE DE REPROVAÇÃO: {prob*100:.2f}%")
-        
+
         if prob > 0.4:
             print("\nPRINCIPAIS PONTOS DE ATENÇÃO:")
             impactos = modelo.coef_[0] * dados_scaled[0]
