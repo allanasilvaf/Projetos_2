@@ -2,78 +2,101 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
+def carregar_e_treinar():
+    try:
+        df = pd.read_excel('dataset_risco_reprovacao.xlsx')
+    except FileNotFoundError:
+        print("Erro: O arquivo 'dataset_risco_reprovacao.xlsx' não foi encontrado.")
+        return None, None, None
 
-try:
-    df = pd.read_excel('dataset_risco_reprovacao.xlsx')
-except FileNotFoundError:
-    print("Erro: O arquivo 'dataset_risco_reprovacao.xlsx' não foi encontrado. Gere-o primeiro.")
-    exit()
+    mapeamento = {'S': 1, 'N': 0}
+    for col in ['trabalha', 'tem_filhos']:
+        if col in df.columns:
+            df[col] = df[col].map(mapeamento)
 
-df['trabalha'] = df['trabalha'].map({'S': 1, 'N': 0})
-df['tem_filhos'] = df['tem_filhos'].map({'S': 1, 'N': 0})
+    X = df.drop('reprovado', axis=1)
+    y = df['reprovado']
 
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-X = df.drop('reprovado', axis=1)
-y = df['reprovado']
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
 
+    modelo = LogisticRegression()
+    modelo.fit(X_train_scaled, y_train)
+    
+    acc = accuracy_score(y_test, modelo.predict(X_test_scaled))
+    print(f"Sistema inicializado. Acurácia do modelo: {acc*100:.2f}%")
+    
+    return modelo, scaler, X.columns.tolist()
 
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+def analisar_risco(modelo, scaler, colunas_esperadas):
+    if modelo is None: 
+        return
+    
+    nomes_amigaveis = {
+        'media_disciplina': 'Baixa média nas notas',
+        'distancia_km': 'Grande distância de deslocamento',
+        'horas_estudo_diaria': 'Poucas horas de estudo diário',
+        'frequencia_percentual': 'Baixa frequência nas aulas',
+        'qtd_aulas_disciplina': 'Alta carga horária da disciplina',
+        'total_materias_semestre': 'Sobrecarga de matérias no semestre',
+        'trabalha': 'Acúmulo de trabalho e estudos',
+        'tem_filhos': 'Responsabilidades familiares (filhos)',
+        'entendimento_conteudo': 'Dificuldade de compreensão do conteúdo'
+    }
 
-
-modelo = LogisticRegression()
-modelo.fit(X_scaled, y)
-
-def analisar_risco():
-    print("\n--- FERRAMENTA DE ANÁLISE DE RISCO ACADÊMICO ---")
-
+    print("FERRAMENTA DE ANÁLISE DE RISCO")
 
     try:
-        media = float(input("Média atual na disciplina (0-10): "))
-        freq = float(input("Frequência atual (%): "))
-        distancia = float(input("Distância casa-universidade (km): "))
-        horas = float(input("Horas de estudo diárias: "))
-        aulas = int(input("Quantidade de aulas da disciplina (36, 72 ou 108): "))
-        materias = int(input("Total de matérias no semestre: "))
-        trab = input("Trabalha? (S/N): ").upper()
-        filhos = input("Tem filhos? (S/N): ").upper()
-        entendimento = int(input("Nível de entendimento do conteúdo (1 a 5): "))
+        inputs = {
+            'media_disciplina': float(input("Média atual (0-10): ").replace(',', '.')),
+            'distancia_km': float(input("Distância casa-faculdade (km): ").replace(',', '.')),
+            'horas_estudo_diaria': float(input("Horas de estudo diárias: ").replace(',', '.')),
+            'frequencia_percentual': float(input("Frequência atual (%): ").replace(',', '.')),
+            'qtd_aulas_disciplina': int(input("Total de aulas (36, 72, 108): ")),
+            'total_materias_semestre': int(input("Matérias no semestre: ")),
+            'trabalha': 1 if input("Trabalha? (S/N): ").upper() == 'S' else 0,
+            'tem_filhos': 1 if input("Tem filhos? (S/N): ").upper() == 'S' else 0,
+            'entendimento_conteudo': int(input("Nível de entendimento (1-5): "))
+        }
 
-        if freq < 75 or media < 5:
-            print("\n" + "="*30)
-            print("RESULTADO: REPROVADO")
-            print("MOTIVO: Critério obrigatório não atingido (Frequência < 75% ou Média < 5).")
-            print("="*30)
+        if inputs['frequencia_percentual'] < 75 or inputs['media_disciplina'] < 5:
+            print("\n" + "!"*10 + " RESULTADO: REPROVADO " + "!"*10)
+            print("Motivo: Critérios mínimos (frequência ou nota) não atingidos.")
             return
 
+        dados_aluno = pd.DataFrame([inputs])[colunas_esperadas]
+        dados_scaled = scaler.transform(dados_aluno)
+        prob = modelo.predict_proba(dados_scaled)[0][1]
 
-        dados_aluno = pd.DataFrame([{
-            'media_disciplina': media,
-            'distancia_km': distancia,
-            'horas_estudo_diaria': horas,
-            'frequencia_percentual': freq,
-            'qtd_aulas_disciplina': aulas,
-            'total_materias_semestre': materias,
-            'trabalha': 1 if trab == 'S' else 0,
-            'tem_filhos': 1 if filhos == 'S' else 0,
-            'entendimento_conteudo': entendimento
-        }])
+        print(f"\nPROBABILIDADE DE REPROVAÇÃO: {prob*100:.2f}%")
+        
+        if prob > 0.4:
+            print("\nPRINCIPAIS PONTOS DE ATENÇÃO:")
+            impactos = modelo.coef_[0] * dados_scaled[0]
+            explicacao = pd.DataFrame({
+                'Variavel': colunas_esperadas,
+                'Impacto': impactos
+            }).sort_values(by='Impacto', ascending=False)
 
-        dados_aluno_scaled = scaler.transform(dados_aluno)
-        probabilidade = modelo.predict_proba(dados_aluno_scaled)[0][1]
+            for _, row in explicacao.head(3).iterrows():
+                if row['Impacto'] > 0:
+                    nome_limpo = nomes_amigaveis.get(row['Variavel'], row['Variavel'])
+                    print(f"{nome_limpo}")
 
-        print("\n" + "="*30)
-        print(f"RISCO CALCULADO: {probabilidade*100:.2f}%")
-
-        if probabilidade > 0.7:
-            print("STATUS: ALTO RISCO DE REPROVAÇÃO")
-        elif probabilidade > 0.3:
-            print("STATUS: ALERTA (Risco Moderado)")
-        else:
-            print("STATUS: SITUAÇÃO SEGURA")
-        print("="*30)
+        if prob > 0.7: print("STATUS FINAL: ALTO RISCO")
+        elif prob > 0.3: print("STATUS FINAL: ALERTA (Risco Moderado)")
+        else: print("STATUS FINAL: SITUAÇÃO SEGURA")
 
     except ValueError:
-        print("Erro: Insira valores numéricos válidos.")
-analisar_risco()
+        print("\nErro: Por favor, insira apenas números válidos nos campos solicitados.")
+
+if __name__ == "__main__":
+    modelo, scaler, colunas = carregar_e_treinar()
+    if modelo is not None:
+        analisar_risco(modelo, scaler, colunas)
