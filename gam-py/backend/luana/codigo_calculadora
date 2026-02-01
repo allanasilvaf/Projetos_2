@@ -1,0 +1,105 @@
+def calcular_crg():
+    print("Calculadora de Previsão de CRG")
+
+    tabela_conceitos = {
+        'E': 10.0,
+        'B': 7.5,
+        'R': 5.0,
+        'I': 0.0,
+        'SF': 0.0,
+        'O': 0.0  
+    }
+
+    print("Etapa 1: Dados do seu histórico atual")
+    while True:
+        try:
+            crg_atual = float(input("Digite seu Coeficiente de Rendimento Geral (CRG) atual: ").replace(',', '.'))
+            if 0 <= crg_atual <= 10: break
+            print("O CRG deve ser entre 0.0 e 10.0.")
+        except ValueError:
+            print("Digite um número válido.")
+
+    while True:
+        try:
+            horas_atuais = int(input("Carga Horária total já cumprida: "))
+            if horas_atuais >= 0: break
+            print("As horas não podem ser negativas.")
+        except ValueError:
+            print("Digite um número inteiro.")
+
+    pontos_acumulados = crg_atual * horas_atuais
+    lista_novas_materias = [] 
+
+    adicionar = input("\nDeseja adicionar matérias novas? (S/N): ").upper().strip()
+
+    if adicionar == 'S':
+        while True:
+            try:
+                qtd = int(input("Quantas matérias vai adicionar? "))
+                if qtd > 0: break
+                print("Digite um número maior que zero.")
+            except ValueError:
+                print("Digite um número inteiro.")
+
+        print("\nEtapa 2: Detalhes das Matérias")
+
+        for i in range(qtd):
+            print(f"\nMatéria {i+1} de {qtd}")
+
+            nome = input("Nome da Matéria: ").strip()
+            if not nome: nome = f"Matéria {i+1}" 
+
+            while True:
+                conceito = input(f"Conceito em {nome} (E, B, R, I ou SF): ").upper().strip()
+                if conceito in tabela_conceitos:
+                    nota_nova = tabela_conceitos[conceito]
+                    break
+                print("Inválido. Use: E, B, R, I ou SF.")
+
+            while True:
+                try:
+                    horas_nova = int(input(f"Carga horária de {nome}: "))
+                    if horas_nova > 0: break
+                    print("As horas devem ser positivas.")
+                except ValueError:
+                    print("Digite um número inteiro.")
+
+            pontos_acumulados += (nota_nova * horas_nova)
+            horas_atuais += horas_nova
+
+            lista_novas_materias.append({
+                'nome': nome,
+                'conceito': conceito,
+                'horas': horas_nova
+            })
+
+    print("\n" + "=" * 40)
+    print("RESUMO DAS INCLUSÕES:")
+    if lista_novas_materias:
+        for m in lista_novas_materias:
+            print(f"- {m['nome']}: {m['conceito']} ({m['horas']}h)")
+    else:
+        print("- Nenhuma matéria nova adicionada.")
+
+    print("-" * 40)
+
+    if horas_atuais > 0:
+        novo_crg = pontos_acumulados / horas_atuais
+        print(f"CRG ANTERIOR:      {crg_atual:.4f}")
+        print(f"NOVO CRG:          {novo_crg:.4f}")
+
+        diferenca = novo_crg - crg_atual
+        if diferenca > 0:
+            print(f"VARIAÇÃO:          +{diferenca:.4f} (Subiu)")
+        elif diferenca < 0:
+            print(f"VARIAÇÃO:          {diferenca:.4f} (Caiu)")
+        else:
+            print("VARIAÇÃO:          0.0 (Manteve)")
+
+        print(f"HORAS TOTAIS:      {horas_atuais}h")
+    else:
+        print("Impossível calcular (0 horas totais).")
+    print("=" * 40)
+
+if __name__ == "__main__":
+    calcular_crg()
