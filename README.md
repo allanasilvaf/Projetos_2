@@ -45,13 +45,13 @@
 ### 🐳 GAM-PY - Execução com Docker
 
 ## Pré-requisitos
-- Docker e Docker Compose instalados
+-Instalar Docker e Docker Compose
 
 ## 🚀 Iniciar o projeto
 ```bash
-git clone https://github.com/seu-usuario/gam-py.git
-
-
+# Clone o repositório remoto
+git clone https://github.com/seu-usuario/Projetos_2.git
+```
 ```bash
 # Em um terminal, vá para o endereço do arquivo
 cd gam-py
@@ -62,7 +62,9 @@ docker-compose up -d
 ```
 
 ### Acessos:
+```
 🌐 http://localhost:5174    # Frontend Vue
 ⚙️  http://localhost:9000    # Backend PHP  
 🗄️  http://localhost:8080    # phpMyAdmin
+```
 
