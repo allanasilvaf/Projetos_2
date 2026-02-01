@@ -1,0 +1,55 @@
+import pandas as pd
+import numpy as np
+
+np.random.seed(42)
+n_amostras = 2500
+
+trabalha = np.random.choice(['S', 'N'], n_amostras, p=[0.4, 0.6])
+tem_filhos = np.random.choice(['S', 'N'], n_amostras, p=[0.15, 0.85])
+distancia_km = np.random.gamma(shape=2, scale=5, size=n_amostras) + 1 
+qtd_aulas_total = np.random.choice([36, 72, 108], n_amostras)
+materias_semestre = np.random.randint(3, 9, n_amostras)
+
+horas_estudo_base = np.random.normal(4, 1.5, n_amostras)
+for i in range(n_amostras):
+    if trabalha[i] == 'S': horas_estudo_base[i] -= 1.5
+    if tem_filhos[i] == 'S': horas_estudo_base[i] -= 1.0
+    horas_estudo_base[i] -= (materias_semestre[i] * 0.2)
+
+horas_estudo = np.clip(horas_estudo_base, 0.5, 10)
+
+frequencia_base = np.random.normal(85, 10, n_amostras)
+frequencia_base -= (distancia_km * 0.3) 
+frequencia = np.clip(frequencia_base, 40, 100)
+
+entendimento_score = (horas_estudo * 0.6) + (frequencia * 0.02) + np.random.normal(0, 1, n_amostras)
+entendimento = pd.cut(entendimento_score, bins=5, labels=[1, 2, 3, 4, 5]).astype(int)
+
+media_final = (entendimento * 1.2) + (frequencia * 0.03) + np.random.normal(0, 0.8, n_amostras)
+media_final = np.clip(media_final, 0, 10)
+
+reprovado = []
+for i in range(n_amostras):
+    if frequencia[i] < 75 or media_final[i] < 5:
+        reprovado.append(1) 
+    else:
+        prob_azar = 0.05 if media_final[i] < 6 else 0.01
+        reprovado.append(np.random.choice([0, 1], p=[1-prob_azar, prob_azar]))
+
+df = pd.DataFrame({
+    'media_disciplina': np.round(media_final, 1),
+    'distancia_km': np.round(distancia_km, 1),
+    'horas_estudo_diaria': np.round(horas_estudo, 1),
+    'frequencia_percentual': np.round(frequencia, 1),
+    'qtd_aulas_disciplina': qtd_aulas_total,
+    'total_materias_semestre': materias_semestre,
+    'trabalha': trabalha,
+    'tem_filhos': tem_filhos,
+    'entendimento_conteudo': entendimento,
+    'reprovado': reprovado
+})
+
+df.to_excel('dataset_risco_reprovacao.xlsx', index=False)
+
+print(f"Dataset gerado com sucesso! {n_amostras} amostras salvas em 'dataset_risco_reprovacao.xlsx'")
+print(df.head())
