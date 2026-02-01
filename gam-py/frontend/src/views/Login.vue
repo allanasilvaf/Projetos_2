@@ -86,29 +86,27 @@ export default {
       <!-- Cabeçalho -->
       <div class="login-header">
         <div class="logo">
-          <span class="logo-icon">🎓</span>
-          <h1>GAM - Login</h1>
+          <h1>Login</h1>
         </div>
-        <p class="subtitle">Sistema de Gestão Acadêmica</p>
-      </div>
+       
+        </div>
 
-      <!-- Formulário -->
-      <form @submit.prevent="handleLogin" class="login-form">
-        <div class="form-group">
-          <label for="email">Email</label>
-          <div class="input-wrapper">
-            <span class="input-icon">✉️</span>
-            <input 
-              type="email" 
-              id="email"
-              v-model="form.email" 
-              placeholder="seu@email.com"
-              required
-              autocomplete="email"
-              :disabled="loading"
-            >
-          </div>
-        </div>
+            <!-- Formulário -->
+            <form @submit.prevent="handleLogin" class="login-form">
+              <div class="form-group">
+                <label for="email">Email</label>
+                <div class="input-wrapper">
+                  <input 
+                    type="email" 
+                    id="email"
+                    v-model="form.email" 
+                    placeholder="usuário@email.com"
+                    required
+                    autocomplete="email"
+                    :disabled="loading"
+                  >
+                </div>
+              </div>
 
         <div class="form-group">
           <label for="password">Senha</label>
@@ -127,10 +125,6 @@ export default {
         </div>
 
         <div class="form-options">
-          <div class="remember-me">
-            <input type="checkbox" id="remember">
-            <label for="remember">Lembrar-me</label>
-          </div>
           <router-link to="/forgot-password" class="forgot-password">
             Esqueceu a senha?
           </router-link>
@@ -145,7 +139,7 @@ export default {
           <span v-if="loading" class="btn-loading">
             <span class="spinner"></span> Entrando...
           </span>
-          <span v-else>Entrar no Sistema</span>
+          <span v-else>Entrar</span>
         </button>
 
         <div v-if="error" class="error-message">
@@ -186,15 +180,29 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%);
-  padding: 20px;
+  background: linear-gradient(135deg, #2c5530 0%, #4a7c59 50%, #2c5530 100%);
+  background-size: 200% 200%;
+  animation: gradientAnimation 8s ease infinite;
+  padding:10px;
+}
+
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .login-card {
   width: 100%;
-  max-width: 420px;
+  max-width: 900px;
   background: white;
-  border-radius: 12px;
+  border-radius: 20px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   padding: 40px;
@@ -325,22 +333,20 @@ export default {
 .btn-login {
   width: 100%;
   padding: 16px;
-  background: #2c5530;
+  background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%);
   color: white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
+  transition: all 0.3s;
+  margin-bottom: 25px;
 }
 
 .btn-login:hover:not(:disabled) {
-  background: #3a6b3f;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(44, 85, 48, 0.3);
+  box-shadow: 0 10px 20px rgba(44, 85, 48, 0.3);
 }
 
 .btn-login:active:not(:disabled) {
