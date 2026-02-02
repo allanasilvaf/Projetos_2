@@ -50,7 +50,7 @@
 ## 🚀 Iniciar o projeto
 ```bash
 # Clone o repositório remoto
-git clone https://github.com/seu-usuario/Projetos_2.git
+git clone https://github.com/allanasilvaf/Projetos_2.git
 ```
 ```bash
 # Em um terminal, vá para o endereço do arquivo
