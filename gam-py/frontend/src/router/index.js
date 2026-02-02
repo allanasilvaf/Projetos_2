@@ -44,8 +44,12 @@ const router = createRouter({
       path: '/Otimizador',
       name: 'Otimizador',
       component: () => import('../views/Otimizador.vue')
+    },
+    {
+      path: '/Chatbot',
+      name: 'Chatbot',
+      component: () => import('../views/Chatbot.vue')
     }
-    
   ]
 
 })
