@@ -39,8 +39,15 @@ const router = createRouter({
       path: '/Calculadora',
       name: 'Calculadora',
       component: () => import('../views/Calculadora.vue')
+    },
+    {
+      path: '/Otimizador',
+      name: 'Otimizador',
+      component: () => import('../views/Otimizador.vue')
     }
+    
   ]
+
 })
 
 export default router

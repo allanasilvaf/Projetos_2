@@ -69,7 +69,7 @@
           <div class="flex-1 pr-4">
             <h3 class="text-xl font-bold text-dark mb-2">Otimizador</h3>
             <p class="text-gray-500 text-sm mb-4">Recomendações inteligentes das melhores disciplinas.</p>
-            <router-link to="/dashboard" class="inline-block bg-dark text-white px-4 py-2 rounded-full text-xs font-bold group-hover:bg-primary transition-colors">
+            <router-link to="/Otimizador" class="inline-block bg-dark text-white px-4 py-2 rounded-full text-xs font-bold group-hover:bg-primary transition-colors">
               Montar Grade
             </router-link>
           </div>
