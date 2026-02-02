@@ -1,9 +1,3 @@
-gambot-ufpa/
-├── app.py              # Aplicação principal
-├── requirements.txt    # Dependências
-├── .env.example       # Exemplo de configuração
-├── data/              # PDFs (não versionado)
-└── README.md          # Esta documentação
 
 # Gambot UFPA
 
