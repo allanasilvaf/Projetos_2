@@ -30,7 +30,7 @@ O Gambot é um sistema inteligente de busca e consulta a documentos acadêmicos 
 
 1. **Clone o repositório**
    ```bash
-   git clone https://github.com/seu-usuario/gambot-ufpa.git
+   git clone https://github.com/danielamenezs/gambot-ufpa.git
    cd gambot-ufpa
    
 2. **Crie e ative um ambiente virtual**
