@@ -9,7 +9,7 @@
 
 ## 📋 Sobre o Projeto
 
-O Gambot UFPA é um sistema inteligente de busca e consulta a documentos acadêmicos da UFPA, combinando busca tradicional com inteligência artificial para fornecer respostas precisas baseadas em regulamentos, grades curriculares e documentos oficiais.
+O Gambot é um sistema inteligente de busca e consulta a documentos acadêmicos da UFPA, combinando busca tradicional com inteligência artificial para fornecer respostas precisas baseadas em regulamentos, grades curriculares e documentos oficiais.
 
 ### Funcionalidades
 
