@@ -20,12 +20,12 @@ def inicializar_openai(api_key):
     try:
         return OpenAI(api_key=api_key.strip())
     except Exception as e:
-        st.error(f"❌ Erro ao conectar com OpenAI: {e}")
+        st.error(f"Erro ao conectar com OpenAI: {e}")
         return None
 
 #side bar com configurações e status
 with st.sidebar:
-    st.header("⚙️ Configurações")
+    st.header("Configurações")
     
     #configuração da API Key
     st.subheader("Configurar OpenAI")
@@ -93,20 +93,20 @@ with st.sidebar:
     st.header("Perguntas Frequentes")
     
     faq_perguntas = {
-        "📅 Calendário Acadêmico": "Como funciona o calendário acadêmico da UFPA?",
-        "⏰ Carga Horária": "Qual é a carga horária total do curso?",
-        "📚 Disciplinas": "Quais são as disciplinas obrigatórias?",
-        "🔒 Trancamento": "Como faço para trancar a matrícula?",
-        "📝 Matrícula": "Quais são os procedimentos para matrícula?",
-        "🎓 TCC": "Como funciona o Trabalho de Conclusão de Curso?",
-        "📋 Regulamento": "Onde encontro o regulamento completo?",
-        "🏛️ Estrutura": "Qual é a estrutura do curso?",
-        "👨‍🏫 Professores": "Como contatar os professores?",
-        "📈 Avaliação": "Como são as avaliações e frequência?",
-        "🔄 Transferência": "Como solicitar transferência de curso?",
-        "📜 Diploma": "Como solicitar segunda via do diploma?",
-        "💰 Bolsas": "Existem bolsas de estudo disponíveis?",
-        "🏢 Campus": "Quais são os campi da UFPA?"
+        "Calendário Acadêmico": "Como funciona o calendário acadêmico da UFPA?",
+        "Carga Horária": "Qual é a carga horária total do curso?",
+        "Disciplinas": "Quais são as disciplinas obrigatórias?",
+        "Trancamento": "Como faço para trancar a matrícula?",
+        "Matrícula": "Quais são os procedimentos para matrícula?",
+        "TCC": "Como funciona o Trabalho de Conclusão de Curso?",
+        "Regulamento": "Onde encontro o regulamento completo?",
+        "Estrutura": "Qual é a estrutura do curso?",
+        "Professores": "Como contatar os professores?",
+        "Avaliação": "Como são as avaliações e frequência?",
+        "Transferência": "Como solicitar transferência de curso?",
+        "Diploma": "Como solicitar segunda via do diploma?",
+        "Bolsas": "Existem bolsas de estudo disponíveis?",
+        "Campus": "Quais são os campi da UFPA?"
     }
     
     for pergunta, texto in faq_perguntas.items():
@@ -314,8 +314,8 @@ def gerar_resposta_ia(pergunta, contexto, cliente_openai):
         return None, f"Erro na API da OpenAI: {str(e)}"
 
 #Interface
-st.title("GAMBOT UFPA 🤖")
-st.markdown("### Assistente Acadêmico Inteligente")
+st.title("GAMBOT UFPA")
+st.markdown("### Assistente Acadêmico Inteligente ###")
 
 #Inicializar estado da sessão
 if "pergunta_manual" not in st.session_state:
@@ -451,21 +451,21 @@ if "resultados" in st.session_state and st.session_state.resultados:
     
     #se foi usada IA, mostrar a resposta primeiro
     if st.session_state.usar_ia_pergunta and "resposta_ia" in st.session_state:
-        st.subheader("🤖 Gambot:")
+        st.subheader("Gambot:")
         
         with st.container():
             st.markdown(st.session_state.resposta_ia)
             
             #Botão para mostrar/ocultar fontes
-            if st.button("📚 Mostrar Fontes Usadas", type="secondary"):
+            if st.button("Mostrar Fontes Usadas", type="secondary"):
                 st.session_state.mostrar_fontes = not st.session_state.get("mostrar_fontes", False)
             
             if st.session_state.get("mostrar_fontes", False) and "contexto_ia" in st.session_state:
-                with st.expander("🔍 Contexto usado pela IA", expanded=False):
+                with st.expander("Contexto usado pela IA", expanded=False):
                     st.text(st.session_state.contexto_ia[:3000] + ("..." if len(st.session_state.contexto_ia) > 3000 else ""))
         
         st.divider()
-        st.subheader("📄 Trechos Encontrados nos Documentos")
+        st.subheader("Trechos Encontrados nos Documentos")
     
     #mostrar resultados detalhados
     arquivos_agrupados = {}
@@ -541,7 +541,7 @@ with col_footer1:
 
 with col_footer2:
     st.markdown(f"""
-    **📊 Estatísticas:**  
+    **Estatísticas:**  
     Buscas: {st.session_state.contador_buscas}  
     IA: {st.session_state.contador_ia}  
     PDFs: {len(pdfs)}
