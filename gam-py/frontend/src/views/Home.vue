@@ -58,7 +58,7 @@
           <div class="flex-1 pr-4">
             <h3 class="text-xl font-bold text-dark mb-2">Calculadora CRG</h3>
             <p class="text-gray-500 text-sm mb-4">Simule seu coeficiente final com base nas notas parciais.</p>
-            <router-link to="/dashboard" class="inline-block bg-dark text-white px-4 py-2 rounded-full text-xs font-bold group-hover:bg-primary transition-colors">
+            <router-link to="/Calculadora" class="inline-block bg-dark text-white px-4 py-2 rounded-full text-xs font-bold group-hover:bg-primary transition-colors">
               Simular Agora
             </router-link>
           </div>
