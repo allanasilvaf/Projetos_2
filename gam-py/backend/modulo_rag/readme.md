@@ -35,11 +35,12 @@ O Gambot UFPA é um sistema inteligente de busca e consulta a documentos acadêm
    
 2. **Crie e ative um ambiente virtual**
 bash
-# Windows
+
+Windows
 python -m venv venv
 venv\Scripts\activate
 
-# Linux/Mac
+Linux/Mac
 python3 -m venv venv
 source venv/bin/activate
 
@@ -51,17 +52,17 @@ pip install -r requirements.txt
 4. **Configure as variáveis de ambiente**
    
 bash
-# Copie o arquivo de exemplo
+Copie o arquivo de exemplo
 cp .env.example .env
 
-# Edite o arquivo .env e adicione sua API Key da OpenAI
-# OPENAI_API_KEY=sk-sua_chave_aqui_12345
+Edite o arquivo .env e adicione sua API Key da OpenAI
+OPENAI_API_KEY=sk-sua_chave_aqui_12345
 
 5. **Adicione seus PDFs**
 
 bash
-# Coloque seus arquivos PDF na pasta data/
-# Exemplo: copie regulamentos, grades curriculares, etc.
+Coloque seus arquivos PDF na pasta data/
+Exemplo: copie regulamentos, grades curriculares, etc.
 
 6. **Execute a aplicação**
 
