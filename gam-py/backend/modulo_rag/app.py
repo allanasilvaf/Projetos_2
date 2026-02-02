@@ -376,7 +376,7 @@ with col_esquerda:
 
 with col_direita:
     #Informações rápidas
-    st.subheader("ℹComo usar")
+    st.subheader("Como usar")
     
     with st.expander("Dicas", expanded=True):
         st.markdown("""
