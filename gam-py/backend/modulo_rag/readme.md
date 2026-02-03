@@ -1,5 +1,4 @@
-
-# Gambot UFPA
+# GAMBOT 
 
 **Assistente Acadêmico Inteligente da Universidade Federal do Pará**
 
@@ -7,69 +6,100 @@
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org/)
 [![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/)
 
-## 📋 Sobre o Projeto
+## Sobre o Projeto
 
-O Gambot é um sistema inteligente de busca e consulta a documentos acadêmicos da UFPA, combinando busca tradicional com inteligência artificial para fornecer respostas precisas baseadas em regulamentos, grades curriculares e documentos oficiais.
+O **Gambot UFPA** é um sistema inteligente de busca e consulta a documentos acadêmicos da UFPA. Ele combina:
 
-### Funcionalidades
+-  **Busca tradicional** por palavras-chave em PDFs
+-  **Inteligência Artificial** para respostas contextualizadas
+-  **Base de conhecimento** em regulamentos e documentos oficiais
+-  **Sistema híbrido** que usa o melhor de ambas as abordagens
 
--  **Busca Inteligente** em documentos PDF
--  **Suporte a múltiplos documentos**
--  **Processamento rápido** de grandes volumes de texto
--  **Configuração segura** de API Keys
+###  Funcionalidades Principais
 
-## Começando
+| Funcionalidade | Descrição |
+|----------------|-----------|
+| **Busca Inteligente** | Expande automaticamente termos com sinônimos |
+| **IA Contextual** | Respostas baseadas no conteúdo dos documentos |
+| **Controle de Fontes** | Sempre mostra de qual documento veio a informação |
+
+## Começando Rápido
 
 ### Pré-requisitos
 
-- Python 3.8+
+- Python 3.8 ou superior
 - Conta na [OpenAI](https://platform.openai.com/) (para API Key)
-- Git (opcional)
+- PDFs com regulamentos/grade curricular da UFPA
 
-### Instalação
+### Instalação Passo a Passo
 
 1. **Clone o repositório**
-   ```bash
-   git clone https://github.com/danielamenezs/gambot-ufpa.git
-   cd gambot-ufpa
+   git clone https://github.com/allanasilvaf/gam-py.git
+   cd modulo_rag
    
-2. **Crie e ative um ambiente virtual**
-bash
+Instale as dependências
 
-Windows
-python -m venv venv
-venv\Scripts\activate
-
-Linux/Mac
-python3 -m venv venv
-source venv/bin/activate
-
-3. **Instale as dependências**
-
-bash
 pip install -r requirements.txt
+Configure a API Key
 
-4. **Configure as variáveis de ambiente**
-   
-bash
-Copie o arquivo de exemplo
-cp .env.example .env
+Crie um arquivo api_key.env na pasta principal
 
-Edite o arquivo .env e adicione sua API Key da OpenAI
-OPENAI_API_KEY=sk-sua_chave_aqui_12345
+Adicione: OPENAI_API_KEY=sua_chave_aqui
 
-5. **Adicione seus PDFs**
+⚙️ Configuração
+Crie um arquivo api_key.env com:
 
-bash
-Coloque seus arquivos PDF na pasta data/
-Exemplo: copie regulamentos, grades curriculares, etc.
+env
+OPENAI_API_KEY=sua_chave_aqui_123456
 
-6. **Execute a aplicação**
+Adicione seus PDFs
 
-bash
+Coloque seus arquivos PDF desejados na pasta data/
+
+Execute o sistema
+
 streamlit run app.py
-
-7. **Acesse no navegador**
+Acesse no navegador
 
 text
 http://localhost:8501
+
+🎮 Como Usar (já na interface)
+1. Configuração Inicial
+Configure sua API Key no menu lateral
+
+Ative/desative a IA conforme necessário
+
+Verifique se os PDFs foram carregados
+
+2. Fazendo Perguntas
+Digite perguntas como:
+
+"disciplinas do 6º período"
+
+"Como funciona o trancamento de matrícula?"
+
+"Qual é a carga horária total do curso?"
+
+"Art. 15"
+
+3. Tipos de Busca
+Busca Tradicional (🔍): Mostra trechos dos documentos
+
+Perguntar à IA (🧠): Resposta inteligente e contextual
+
+4. FAQ Rápido
+Use as perguntas frequentes no menu lateral para começar rápido!
+
+📁 Estrutura do Projeto
+text
+gambot-ufpa/
+├── app.py              # Aplicação principal
+├── requirements.txt    # Dependências Python
+├── README.md          # Esta documentação
+├── .gitignore         # Arquivos ignorados no Git
+├── .env.example       # Exemplo de configuração
+├── LICENSE            # Licença MIT
+└── data/              # Pasta para PDFs
+    └── .gitkeep       # Mantém a pasta no Git
+    
