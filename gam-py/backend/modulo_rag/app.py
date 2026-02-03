@@ -581,7 +581,7 @@ with col_esquerda:
     
     with col_busca1:
         buscar_tradicional = st.button(
-            "🔍 Busca Tradicional",
+            "Busca Tradicional",
             type="secondary",
             help="Busca exata por palavras-chave nos documentos",
             use_container_width=True
@@ -589,7 +589,7 @@ with col_esquerda:
     
     with col_busca2:
         buscar_com_ia = st.button(
-            "🧠 Perguntar à IA",
+            "Perguntar à IA",
             type="primary",
             disabled=not (api_key and usar_ia),
             help="Resposta inteligente baseada no contexto dos documentos",
@@ -598,7 +598,7 @@ with col_esquerda:
     
     with col_busca3:
         limpar = st.button(
-            "🗑️ Limpar Tudo",
+            "Limpar Tudo",
             type="secondary",
             help="Limpa resultados e conversa",
             use_container_width=True
@@ -635,11 +635,11 @@ with col_direita:
         """)
     
     if api_key and usar_ia:
-        st.success("✅ IA ativada e configurada!")
+        st.success("IA configurada")
     elif usar_ia:
-        st.warning("⚠️ Configure a API Key para usar a IA")
+        st.warning("Configure a API Key para usar a IA")
     else:
-        st.info("ℹ️ IA desativada - use busca tradicional")
+        st.info("IA desativada - use busca tradicional")
 
 #processamento de buscas
 
@@ -841,10 +841,10 @@ col_footer1, col_footer2, col_footer3 = st.columns([2, 1, 1])
 with col_footer1:
     st.markdown("""
     **Gambot UFPA** | Sistema híbrido de busca   
-    🔍 **Busca tradicional:** Localização por palavras-chave  
-    🧠 **IA:** Respostas contextuais com ChatGPT  
-    📚 **Fontes oficiais:** Respostas baseadas apenas nos documentos  
-    ⚡ **Tecnologia:** Python + Streamlit + OpenAI + RAG
+     **Busca tradicional:** Localização por palavras-chave  
+     **IA:** Respostas contextuais com ChatGPT  
+     **Fontes oficiais:** Respostas baseadas apenas nos documentos  
+     **Tecnologia:** Python + Streamlit + OpenAI + RAG
     """)
 
 with col_footer2:
