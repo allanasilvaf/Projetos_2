@@ -98,7 +98,6 @@ gambot-ufpa/
 ├── README.md           # Esta documentação
 ├── .gitignore          # Arquivos ignorados no Git
 ├── .env.example        # Exemplo de configuração
-├── LICENSE             # Licença MIT
 └── data/               # Pasta para PDFs
     └── .gitkeep        # Mantém a pasta no Git
     
