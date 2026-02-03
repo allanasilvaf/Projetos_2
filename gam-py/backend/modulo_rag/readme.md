@@ -92,14 +92,13 @@ Perguntar à IA (🧠): Resposta inteligente e contextual
 Use as perguntas frequentes no menu lateral para começar rápido!
 
 📁 Estrutura do Projeto
-text
 gambot-ufpa/
 ├── app.py              # Aplicação principal
 ├── requirements.txt    # Dependências Python
-├── README.md          # Esta documentação
-├── .gitignore         # Arquivos ignorados no Git
-├── .env.example       # Exemplo de configuração
-├── LICENSE            # Licença MIT
-└── data/              # Pasta para PDFs
-    └── .gitkeep       # Mantém a pasta no Git
+├── README.md           # Esta documentação
+├── .gitignore          # Arquivos ignorados no Git
+├── .env.example        # Exemplo de configuração
+├── LICENSE             # Licença MIT
+└── data/               # Pasta para PDFs
+    └── .gitkeep        # Mantém a pasta no Git
     
