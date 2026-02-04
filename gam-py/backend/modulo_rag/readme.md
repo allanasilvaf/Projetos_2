@@ -73,12 +73,11 @@ MODEL=gpt-4o-mini
 ▶️ Executando o Sistema
 Com o ambiente virtual ativado e as configurações feitas, execute:
 
-Bash
-
 streamlit run app.py
 O sistema abrirá automaticamente no seu navegador em: http://localhost:8501
 
  Como Usar
+ 
 1. Configuração Inicial (Na Interface)
 Verifique no menu lateral se a API Key foi carregada corretamente (aparecerá "Chave padrão detectada").
 
