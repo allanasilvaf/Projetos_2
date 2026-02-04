@@ -566,7 +566,7 @@ with col_esquerda:
     
     with col_busca1:
         buscar_tradicional = st.button(
-            "Busca Tradicional",
+            "🔍 Busca Tradicional",
             type="secondary",
             help="Busca exata por palavras-chave nos documentos",
             use_container_width=True
@@ -576,7 +576,7 @@ with col_esquerda:
         #Usa a chave da session_state
         chave_disponivel = st.session_state.openai_api_key and st.session_state.openai_api_key.strip()
         buscar_com_ia = st.button(
-            "Perguntar à IA",
+            "🧠 Perguntar à IA",
             type="primary",
             disabled=not (chave_disponivel and usar_ia),
             help="Resposta inteligente baseada no contexto dos documentos" + ("" if chave_disponivel else " (API Key necessária)"),
@@ -585,7 +585,7 @@ with col_esquerda:
     
     with col_busca3:
         limpar = st.button(
-            "Limpar Tudo",
+            "🗑️ Limpar Tudo",
             type="secondary",
             help="Limpa resultados e conversa",
             use_container_width=True
