@@ -57,12 +57,14 @@ source venv/bin/activate
 3. Instale as dependências
 
 pip install -r requirements.txt
+
 ⚙️ Configuração
 Adicione seus PDFs Coloque os arquivos PDF (Regulamento, Grade, PPC) dentro da pasta data/.
 
 Se a pasta não existir, o sistema criará automaticamente na primeira execução, mas você precisará adicionar os arquivos nela.
 
-Configure a API Key Crie um arquivo chamado api_key.env na raiz do projeto (onde está o app.py) e adicione sua chave:
+Configure a API Key
+Crie um arquivo chamado api_key.env na raiz do projeto (onde está o app.py) e adicione sua chave:
 
 Snippet de código
 
@@ -71,12 +73,14 @@ MODEL=gpt-4o-mini
 ...
 
 ▶️ Executando o Sistema
+
 Com o ambiente virtual ativado e as configurações feitas, execute:
 
 streamlit run app.py
+
 O sistema abrirá automaticamente no seu navegador em: http://localhost:8501
 
- Como Usar
+Como Usar
  
 1. Configuração Inicial (Na Interface)
 Verifique no menu lateral se a API Key foi carregada corretamente (aparecerá "Chave padrão detectada").
@@ -93,6 +97,7 @@ Digite dúvidas naturais na caixa de texto. Exemplos:
 "O que diz o Art. 15?"
 
 3. Modos de Busca
+   
 🔍 Busca Tradicional: Retorna os trechos exatos onde as palavras aparecem, útil para encontrar artigos específicos.
 
 🧠 Perguntar à IA: Lê o contexto das páginas mais relevantes e gera uma resposta explicativa citando as fontes.
