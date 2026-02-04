@@ -43,7 +43,8 @@ git clone [https://github.com/allanasilvaf/gam-py.git](https://github.com/allana
 cd gam-py/backend/modulo_rag
 (Ajuste o caminho do cd conforme a estrutura exata da sua pasta)
 
-2. Crie e ative o ambiente virtual (Recomendado) Isso isola as dependências do projeto para não conflitar com seu sistema.
+**2. Crie e ative o ambiente virtual (Recomendado)**
+Isso isola as dependências do projeto para não conflitar com seu sistema.
 
 No Windows:
 
@@ -54,7 +55,8 @@ No Linux/Mac:
 
 python3 -m venv venv
 source venv/bin/activate
-3. Instale as dependências
+
+**3. Instale as dependências**
 
 pip install -r requirements.txt
 
@@ -72,7 +74,7 @@ OPENAI_API_KEY=sk-sua-chave-aqui-123456...
 MODEL=gpt-4o-mini
 ...
 
-▶️ Executando o Sistema
+**▶️ Executando o Sistema**
 
 Com o ambiente virtual ativado e as configurações feitas, execute:
 
@@ -80,14 +82,14 @@ streamlit run app.py
 
 O sistema abrirá automaticamente no seu navegador em: http://localhost:8501
 
-Como Usar
+**Como Usar**
  
-1. Configuração Inicial (Na Interface)
+**1. Configuração Inicial (Na Interface)**
 Verifique no menu lateral se a API Key foi carregada corretamente (aparecerá "Chave padrão detectada").
 
 Confirme se os PDFs foram listados no "Status do Sistema".
 
-2. Fazendo Perguntas
+**2. Fazendo Perguntas**
 Digite dúvidas naturais na caixa de texto. Exemplos:
 
 "Quantas horas preciso de CH complementar?"
@@ -96,18 +98,18 @@ Digite dúvidas naturais na caixa de texto. Exemplos:
 
 "O que diz o Art. 15?"
 
-3. Modos de Busca
+**3. Modos de Busca**
    
 🔍 Busca Tradicional: Retorna os trechos exatos onde as palavras aparecem, útil para encontrar artigos específicos.
 
 🧠 Perguntar à IA: Lê o contexto das páginas mais relevantes e gera uma resposta explicativa citando as fontes.
 
-4. Dicas
+**4. Dicas**
 Use as perguntas frequentes (FAQ) no menu lateral para testes rápidos.
 
 Se a IA não souber, ela dirá que não encontrou a informação nos documentos (evitando alucinações).
 
-📁 Estrutura do Projeto
+**📁 Estrutura do Projeto**
 
 modulo_rag/
 ├── .streamlit/          # Configurações do Streamlit
