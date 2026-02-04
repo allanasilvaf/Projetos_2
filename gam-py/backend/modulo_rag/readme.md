@@ -1,4 +1,4 @@
-# GAMBOT 
+# GAMBOT - Chatbot da plataforma Gam.py
 
 **Assistente Acadêmico Inteligente da Universidade Federal do Pará**
 
@@ -8,96 +8,108 @@
 
 ## Sobre o Projeto
 
-O **Gambot UFPA** é um sistema inteligente de busca e consulta a documentos acadêmicos da UFPA. Ele combina:
+O **Gambot UFPA** é um sistema inteligente de busca e consulta a documentos acadêmicos da UFPA (como regulamentos e grades curriculares). Ele combina:
 
--  **Busca tradicional** por palavras-chave em PDFs
--  **Inteligência Artificial** para respostas contextualizadas
--  **Base de conhecimento** em regulamentos e documentos oficiais
--  **Sistema híbrido** que usa o melhor de ambas as abordagens
+- **Busca tradicional** por palavras-chave em PDFs.
+- **Inteligência Artificial (RAG)** para respostas contextualizadas.
+- **Base de conhecimento** focada em documentos oficiais.
+- **Sistema híbrido** de pontuação para encontrar a página mais relevante.
 
-###  Funcionalidades Principais
+### Funcionalidades Principais
 
 | Funcionalidade | Descrição |
 |----------------|-----------|
-| **Busca Inteligente** | Expande automaticamente termos com sinônimos |
-| **IA Contextual** | Respostas baseadas no conteúdo dos documentos |
-| **Controle de Fontes** | Sempre mostra de qual documento veio a informação |
+| **Busca por Ranking** | Analisa qual página tem mais termos relevantes e densidade de palavras |
+| **IA Contextual** | Envia páginas completas para o GPT responder com precisão |
+| **Controle de Fontes** | Cita o documento e a página de onde a informação foi retirada |
+
 
 ## Começando Rápido
 
 ### Pré-requisitos
 
 - Python 3.8 ou superior
+- Git instalado
 - Conta na [OpenAI](https://platform.openai.com/) (para API Key)
 - PDFs com regulamentos/grade curricular da UFPA
 
 ### Instalação Passo a Passo
 
-1. **Clone o repositório**
-   git clone https://github.com/allanasilvaf/gam-py.git
-   cd modulo_rag
-   
-Instale as dependências
+Siga os comandos abaixo no seu terminal:
+
+**1. Clone o repositório**
+
+git clone [https://github.com/allanasilvaf/gam-py.git](https://github.com/allanasilvaf/gam-py.git)
+cd gam-py/backend/modulo_rag
+(Ajuste o caminho do cd conforme a estrutura exata da sua pasta)
+
+2. Crie e ative o ambiente virtual (Recomendado) Isso isola as dependências do projeto para não conflitar com seu sistema.
+
+No Windows:
+
+python -m venv venv
+.\venv\Scripts\activate
+
+No Linux/Mac:
+
+python3 -m venv venv
+source venv/bin/activate
+3. Instale as dependências
 
 pip install -r requirements.txt
-Configure a API Key
-
-Crie um arquivo api_key.env na pasta principal
-
-Adicione: OPENAI_API_KEY=sua_chave_aqui
-
 ⚙️ Configuração
-Crie um arquivo api_key.env com:
+Adicione seus PDFs Coloque os arquivos PDF (Regulamento, Grade, PPC) dentro da pasta data/.
 
-env
-OPENAI_API_KEY=sua_chave_aqui_123456
+Se a pasta não existir, o sistema criará automaticamente na primeira execução, mas você precisará adicionar os arquivos nela.
 
-Adicione seus PDFs
+Configure a API Key Crie um arquivo chamado api_key.env na raiz do projeto (onde está o app.py) e adicione sua chave:
 
-Coloque seus arquivos PDF desejados na pasta data/
+Snippet de código
 
-Execute o sistema
+OPENAI_API_KEY=sk-sua-chave-aqui-123456...
+MODEL=gpt-4o-mini
+...
+
+▶️ Executando o Sistema
+Com o ambiente virtual ativado e as configurações feitas, execute:
+
+Bash
 
 streamlit run app.py
-Acesse no navegador
+O sistema abrirá automaticamente no seu navegador em: http://localhost:8501
 
-text
-http://localhost:8501
+ Como Usar
+1. Configuração Inicial (Na Interface)
+Verifique no menu lateral se a API Key foi carregada corretamente (aparecerá "Chave padrão detectada").
 
-🎮 Como Usar (já na interface)
-1. Configuração Inicial
-Configure sua API Key no menu lateral
-
-Ative/desative a IA conforme necessário
-
-Verifique se os PDFs foram carregados
+Confirme se os PDFs foram listados no "Status do Sistema".
 
 2. Fazendo Perguntas
-Digite perguntas como:
+Digite dúvidas naturais na caixa de texto. Exemplos:
 
-"disciplinas do 6º período"
+"Quantas horas preciso de CH complementar?"
 
-"Como funciona o trancamento de matrícula?"
+"Qual o prazo para trancamento de matrícula?"
 
-"Qual é a carga horária total do curso?"
+"O que diz o Art. 15?"
 
-"Art. 15"
+3. Modos de Busca
+🔍 Busca Tradicional: Retorna os trechos exatos onde as palavras aparecem, útil para encontrar artigos específicos.
 
-3. Tipos de Busca
-Busca Tradicional (🔍): Mostra trechos dos documentos
+🧠 Perguntar à IA: Lê o contexto das páginas mais relevantes e gera uma resposta explicativa citando as fontes.
 
-Perguntar à IA (🧠): Resposta inteligente e contextual
+4. Dicas
+Use as perguntas frequentes (FAQ) no menu lateral para testes rápidos.
 
-4. FAQ Rápido
-Use as perguntas frequentes no menu lateral para começar rápido!
+Se a IA não souber, ela dirá que não encontrou a informação nos documentos (evitando alucinações).
 
 📁 Estrutura do Projeto
-gambot-ufpa/
-├── app.py              # Aplicação principal
-├── requirements.txt    # Dependências Python
-├── README.md           # Esta documentação
-├── .gitignore          # Arquivos ignorados no Git
-├── .env.example        # Exemplo de configuração
-└── data/               # Pasta para PDFs
-    └── .gitkeep        # Mantém a pasta no Git
-    
+
+modulo_rag/
+├── .streamlit/          # Configurações do Streamlit
+├── data/                # Pasta onde ficam os PDFs (Base de conhecimento)
+├── venv/                # Ambiente virtual (não versionado)
+├── app.py               # Aplicação principal
+├── api_key.env          # Chave da API (não versionado)
+├── requirements.txt     # Lista de bibliotecas necessárias
+└── README.md            # Documentação
