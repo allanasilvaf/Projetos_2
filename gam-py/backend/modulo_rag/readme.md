@@ -112,10 +112,10 @@ Se a IA não souber, ela dirá que não encontrou a informação nos documentos 
 **📁 Estrutura do Projeto**
 
 modulo_rag/
-├── .streamlit/          # Configurações do Streamlit
-├── data/                # Pasta onde ficam os PDFs (Base de conhecimento)
-├── venv/                # Ambiente virtual (não versionado)
-├── app.py               # Aplicação principal
-├── api_key.env          # Chave da API (não versionado)
-├── requirements.txt     # Lista de bibliotecas necessárias
-└── README.md            # Documentação
+├── .streamlit/                                           # Configurações do Streamlit
+├── data/                                                 # Pasta onde ficam os PDFs (Base de conhecimento)
+├── venv/                                                 # Ambiente virtual (não versionado)
+├── app.py                                                # Aplicação principal
+├── api_key.env                                           # Chave da API (não versionado)
+├── requirements.txt                                      # Lista de bibliotecas necessárias
+└── README.md                                             # Documentação
