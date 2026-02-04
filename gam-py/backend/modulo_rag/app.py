@@ -6,10 +6,12 @@ from datetime import datetime
 from openai import OpenAI
 import hashlib
 import sys
+import time
+import unicodedata
 
-#Config inicial
+#config inicial
 
-#Adiciona o diretório atual ao path para importações
+#Add o diretório atual ao path para importações
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def carregar_configuracoes():
@@ -18,19 +20,20 @@ def carregar_configuracoes():
     config = {
         "api_key": "",
         "modelo": "gpt-4o-mini",
-        "max_tokens": 800
+        "max_tokens": 800 # Tokens de resposta(saída)
     }
     
-    #Tenta da variável de ambiente
+    #tenta da variável de ambiente
     chave_env = os.environ.get("OPENAI_API_KEY")
     if chave_env and chave_env.strip():
         config["api_key"] = chave_env.strip()
+        print(f"DEBUG: Chave carregada do ambiente, comprimento: {len(config['api_key'])}")
         return config
     
-    #Tenta de arquivos .env em locais comuns
+    #Tenta tb de arquivos .env em locais comuns
     locais_arquivos = [
         ".env",
-        "api_key.env",  #q tem q ta junto
+        "api_key.env",
         os.path.join(os.path.dirname(__file__), ".env"),
         os.path.join(os.path.dirname(__file__), "api_key.env"),
         "config/.env", 
@@ -40,28 +43,30 @@ def carregar_configuracoes():
     for arquivo in locais_arquivos:
         if os.path.exists(arquivo):
             try:
-                print(f"Tentando carregar de: {arquivo}")  #Debug
+                print(f"Tentando carregar de: {arquivo}")
                 with open(arquivo, "r", encoding="utf-8") as f:
                     for linha in f:
                         linha = linha.strip()
+                        if linha.startswith("#") or not linha:
+                            continue
                         if linha.startswith("OPENAI_API_KEY="):
                             config["api_key"] = linha.split("=", 1)[1].strip().strip('"').strip("'")
-                            print(f"Chave encontrada em {arquivo}: {config['api_key'][:10]}...")  #debug
+                            print(f"Chave encontrada em {arquivo}, comprimento: {len(config['api_key'])}")
                         elif linha.startswith("MODEL="):
                             config["modelo"] = linha.split("=", 1)[1].strip().strip('"').strip("'")
             except Exception as e:
-                print(f"Erro ao ler {arquivo}: {e}")  #debug dnv
+                print(f"Erro ao ler {arquivo}: {e}")
                 continue
     
     return config
 
-#Carrega configurações iniciais
+#carrega as configs iniciais
 CONFIG_INICIAL = carregar_configuracoes()
 print(f"DEBUG: Config carregada - Chave: {bool(CONFIG_INICIAL['api_key'])}, Modelo: {CONFIG_INICIAL['modelo']}")
 
-#Config da página
+# cnfiguração da página
 st.set_page_config(
-    page_title="Gambot UFPA",
+    page_title="Gambot",
     page_icon="🎓",
     layout="wide"
 )
@@ -71,18 +76,38 @@ st.set_page_config(
 def inicializar_openai(api_key):
     """Inicializa o cliente da OpenAI de forma segura."""
     if not api_key or not api_key.strip():
+        print("DEBUG: API Key vazia ou apenas espaços.")
         return None
     
     try:
-        #Remove possíveis espaços ou caracteres extras
+        #remove possíveis espaços ou caracteres extras
         chave_limpa = api_key.strip()
-        return OpenAI(api_key=chave_limpa)
+        
+        #verifica se a chave parece válida
+        if not chave_limpa.startswith("sk-"):
+            #Tenta extrair a chave se estiver em texto maior
+            match = re.search(r'sk-[a-zA-Z0-9]{20,}', chave_limpa)
+            if match:
+                chave_limpa = match.group(0)
+            else:
+                return None
+        
+        #Inicializa o cliente
+        client = OpenAI(api_key=chave_limpa)
+        
+        #Testa a conexão com uma chamada teste
+        try:
+            client.models.list(timeout=5)
+        except Exception as test_e:
+            print(f"DEBUG: Aviso no teste de conexão: {test_e}")
+        
+        return client
     except Exception as e:
-        #Log interno (não mostra p o usuário)
-        print(f"Erro ao inicializar OpenAI: {e}")
+        print(f"Erro ao inicializar OpenAI: {type(e).__name__}: {str(e)}")
         return None
 
-#Inicializa todas as variáveis de sessão necessárias
+#Inicialização do estado da sessão
+
 if "contador_buscas" not in st.session_state:
     st.session_state.contador_buscas = 0
 if "contador_ia" not in st.session_state:
@@ -101,8 +126,10 @@ if "mostrar_fontes" not in st.session_state:
     st.session_state.mostrar_fontes = False
 if "faq_clicada" not in st.session_state:
     st.session_state.faq_clicada = False
+if "openai_api_key" not in st.session_state:
+    st.session_state.openai_api_key = ""
 
-# Verifica PDFs
+#verificação dos pdfs
 
 #Verifica se a pasta data existe
 if not os.path.exists("data"):
@@ -115,7 +142,7 @@ if os.path.exists("data"):
     pdfs = [f for f in os.listdir("data") if f.lower().endswith(".pdf")]
     print(f"DEBUG: {len(pdfs)} PDF(s) encontrado(s): {pdfs}")
 
-#Side bar com as config
+#sidebar c as configs
 
 with st.sidebar:
     st.header("Configurações")
@@ -123,63 +150,76 @@ with st.sidebar:
     #Configuração da API Key
     st.subheader("API da OpenAI")
     
-    #Mostra se há chave pré-configurada
+    #Inicializa a chave na session_state se não existir
+    if "openai_api_key" not in st.session_state:
+        st.session_state.openai_api_key = CONFIG_INICIAL.get("api_key", "")
+
+    #Verifica se há chave padrão
     tem_chave_padrao = bool(CONFIG_INICIAL["api_key"])
-    print(f"DEBUG: Tem chave padrão? {tem_chave_padrao}")
     
     if tem_chave_padrao:
         st.info("✅ Chave padrão detectada")
         
+        if "opcao_chave" not in st.session_state:
+            st.session_state.opcao_chave = "Usar chave padrão"
+        
         opcao_chave = st.radio(
             "Escolha como usar a chave da API:",
             ["Usar chave padrão", "Usar chave personalizada"],
+            index=0 if st.session_state.opcao_chave == "Usar chave padrão" else 1,
             key="opcao_chave_radio"
         )
         
+        st.session_state.opcao_chave = opcao_chave
+        
         if opcao_chave == "Usar chave padrão":
-            api_key = CONFIG_INICIAL["api_key"]
-            # mostra so os últimos 4 caracteres p segurança
-            chave_oculta = "•" * 20 + api_key[-4:] if len(api_key) > 4 else "••••"
-            st.text_input(
-                "Chave atual:",
-                value=chave_oculta,
-                disabled=True
-            )
+            st.session_state.openai_api_key = CONFIG_INICIAL["api_key"]
+            chave_oculta = "•" * 20 + CONFIG_INICIAL["api_key"][-4:] if len(CONFIG_INICIAL["api_key"]) > 4 else "••••"
+            st.text_input("Chave atual:", value=chave_oculta, disabled=True)
             st.success("Usando chave padrão configurada")
-            
         else:
+            if "api_key_input" not in st.session_state:
+                st.session_state.api_key_input = ""
+            
             api_key_input = st.text_input(
                 "Insira sua chave personalizada:",
                 type="password",
                 placeholder="sk-...",
+                value=st.session_state.api_key_input,
                 help="Substitui a chave padrão",
-                key="api_key_personalizada"
+                key="api_key_personalizada_input"
             )
-            api_key = api_key_input if api_key_input.strip() else CONFIG_INICIAL["api_key"]
             
+            st.session_state.api_key_input = api_key_input
+            
+            if api_key_input.strip():
+                st.session_state.openai_api_key = api_key_input.strip()
+                st.success("✅ API Key personalizada configurada!")
+            else:
+                st.session_state.openai_api_key = CONFIG_INICIAL["api_key"]
+                st.info("ℹ️ Usando chave padrão (campo personalizado vazio)")
+                
     else:
         st.warning("⚠️ Nenhuma chave padrão encontrada")
+        if "api_key_input" not in st.session_state:
+            st.session_state.api_key_input = ""
+        
         api_key_input = st.text_input(
             "Insira sua API Key da OpenAI:",
             type="password",
             placeholder="sk-...",
             help="Obtenha em: https://platform.openai.com/api-keys",
-            key="api_key_input"
+            key="api_key_input_no_default"
         )
-        api_key = api_key_input
+        
+        if api_key_input.strip():
+            st.session_state.openai_api_key = api_key_input.strip()
+            st.success("API Key configurada!")
+        else:
+            st.session_state.openai_api_key = ""
+            st.warning("API Key não configurada")
     
-    #Salva API key na sessão
-    if api_key and api_key.strip():
-        st.session_state.openai_api_key = api_key.strip()
-        st.success("✅ API Key configurada!")
-    elif "openai_api_key" in st.session_state:
-        api_key = st.session_state.openai_api_key
-    else:
-        api_key = ""
-        if tem_chave_padrao and opcao_chave == "Usar chave padrão":
-            api_key = CONFIG_INICIAL["api_key"]
-    
-    #Ativar/Desativar IA
+    # Ativar/Desativar IA
     usar_ia = st.checkbox(
         "Usar IA (ChatGPT)",
         value=True,
@@ -189,12 +229,12 @@ with st.sidebar:
     
     st.divider()
     
-    #Status do sistema
+    # Status do sistema
     st.header("Status do Sistema")
     
     if pdfs:
         st.success(f"✅ {len(pdfs)} PDF(s) carregado(s)")
-        for pdf in pdfs[:5]:  #Mostra apenas os primeiros 5
+        for pdf in pdfs[:5]:
             try:
                 caminho_pdf = os.path.join("data", pdf)
                 tamanho = os.path.getsize(caminho_pdf) / 1024
@@ -209,7 +249,7 @@ with st.sidebar:
     
     st.divider()
     
-    #Contador de buscas
+    # Contador de buscas
     col_status1, col_status2 = st.columns(2)
     with col_status1:
         st.metric("Buscas", st.session_state.contador_buscas)
@@ -240,13 +280,14 @@ with st.sidebar:
         "Campus": "Quais são os campi da UFPA?"
     }
     
-    for pergunta, texto in faq_perguntas.items():
-        if st.button(pergunta, key=f"faq_{hashlib.md5(pergunta.encode()).hexdigest()[:8]}"):
+    for pergunta_faq, texto in faq_perguntas.items():
+        if st.button(pergunta_faq, key=f"faq_{hashlib.md5(pergunta_faq.encode()).hexdigest()[:8]}"):
             st.session_state.pergunta_manual = texto
             st.session_state.usar_ia_pergunta = True
             st.session_state.faq_clicada = True
+            st.rerun()
 
-#sinônimos
+#Dicionário de sinônimos
 
 SINONIMOS = {
     "carga horária": ["CH", "horas", "h", "carga", "horária"],
@@ -304,211 +345,154 @@ SINONIMOS = {
     "artigo": ["art.", "art", "artigo"],
     "parágrafo": ["§", "parágrafo único", "paragrafo"],
     "inciso": ["inc.", "inciso", "item"],
-    "resolução": ["norma", "regra", "decisa"]
+    "resolução": ["norma", "regra", "decisão", "deliberação"]
 }
 
-#funções de busca
+#Funções de busca
 
-def buscar_inteligente(termo_busca):
-    """Busca inteligente que expande o termo com sinônimos e extrai palavras-chave."""
-    termo_busca = termo_busca.lower().strip()
-    
-    if not termo_busca:
+def normalizar_texto(texto):
+    """Remove acentos e coloca em minúsculas para comparação."""
+    if not texto: return ""
+    return unicodedata.normalize('NFKD', texto).encode('ASCII', 'ignore').decode('ASCII').lower()
+
+def buscar_inteligente(pergunta_usuario):
+    """
+    Busca por ranking: pontua as páginas que contêm mais termos da pergunta.
+    Substitui a lógica sequencial antiga.
+    """
+    if not pergunta_usuario:
         return []
     
-    #Se for uma pergunta completa, extrair palavras-chave
-    palavras_pergunta = {"quais", "qual", "como", "quando", "onde", "porque", "por que", "o que", "quem", "quantos", "quantas", "para que"}
-    palavras = termo_busca.split()
+    print(f"DEBUG: Iniciando busca por ranking para: '{pergunta_usuario}'")
     
-    #Filtrar palavras-chave (remover palavras de pergunta e muito curtas)
-    palavras_chave = []
+    #Preparar os termos de busca
+    termos_busca = set()
+    palavras_irrelevantes = {"quais", "qual", "como", "quando", "onde", "porque", "que", "para", "com", "dos", "das", "pelo", "pela", "estou", "quero", "saber"}
+    palavras = pergunta_usuario.lower().split()
+    
     for palavra in palavras:
-        palavra_limpa = re.sub(r'[^\w\s]', '', palavra)  #Remove pontuação
-        if (palavra_limpa not in palavras_pergunta and 
-            len(palavra_limpa) > 2 and 
-            palavra_limpa not in {"do", "da", "de", "dos", "das", "em", "no", "na", "nos", "nas", "ao", "aos", "pelo", "pela"}):
-            palavras_chave.append(palavra_limpa)
+        limpa = re.sub(r'[^\w]', '', palavra)
+        if len(limpa) > 2 and limpa not in palavras_irrelevantes:
+            termos_busca.add(limpa)
+            if limpa in SINONIMOS:
+                for sin in SINONIMOS[limpa][:2]: # Top 2 sinônimos
+                    termos_busca.add(sin)
     
-    #Se encontrou palavras-chave, usa elas
-    if palavras_chave:
-        #Pegar as 3 principais palavras-chave
-        principais_palavras = palavras_chave[:3]
-        termo_busca = " ".join(principais_palavras)
-    elif len(termo_busca.split()) > 3:
-        #Se não encontrou palavras-chave mas o termo é longo, pega as primeiras 3 palavras
-        termo_busca = " ".join(termo_busca.split()[:3])
+    #Tratamentos hardcoded 
+    pergunta_norm = normalizar_texto(pergunta_usuario)
+    if "6" in pergunta_usuario or "sexto" in pergunta_norm:
+        termos_busca.add("6")
+        termos_busca.add("sexto")
+        termos_busca.add("nivel")
     
-    #Lista para termos expandidos
-    termos_expandidos = [termo_busca]
+    if "grade" in pergunta_norm or "disciplina" in pergunta_norm:
+        termos_busca.add("componente")
+        termos_busca.add("curricular")
     
-    #Expansão por sinônimos p cada palavra individual
-    palavras_do_termo = termo_busca.split()
-    for palavra in palavras_do_termo:
-        if palavra in SINONIMOS:
-            for sinonimo in SINONIMOS[palavra]:
-                termos_expandidos.append(sinonimo)
+    print(f"DEBUG: Termos considerados: {termos_busca}")
     
-    #Expansão p o termo completo
-    for palavra_chave, lista_sinonimos in SINONIMOS.items():
-        #Verifica se a palavra-chave tá contida no termo de busca
-        if palavra_chave in termo_busca:
-            for sinonimo in lista_sinonimos:
-                #Tenta substituir a palavra-chave pelo sinônimo
-                novo_termo = termo_busca.replace(palavra_chave, sinonimo)
-                if novo_termo != termo_busca:  # Só adiciona se realmente mudou
-                    termos_expandidos.append(novo_termo)
+    #Varrer PDFs e pontuar
+    melhores_paginas = []
     
-    #Procura por padrões específicos
-    padroes_comuns = {
-        r'\b\d+º\b': ['º nível', 'º semestre', 'º periodo'],
-        r'\bdisciplinas?\b': ['matérias', 'componentes curriculares'],
-        r'\btrancamento\b': ['suspensão', 'cancelamento']
-    }
-    
-    for padrao, substituicoes in padroes_comuns.items():
-        if re.search(padrao, termo_busca):
-            for substituicao in substituicoes:
-                novo_termo = re.sub(padrao, substituicao, termo_busca)
-                termos_expandidos.append(novo_termo)
-    
-    #Remover duplicados e termos vazios
-    termos_filtrados = []
-    for termo in set(termos_expandidos):
-        termo_limpo = termo.strip()
-        if termo_limpo and len(termo_limpo) >= 2:
-            termos_filtrados.append(termo_limpo)
-    
-    print(f"DEBUG: Termos expandidos: {termos_filtrados}")
-    
-    #Buscar para cada termo expandido
-    resultados_totais = []
-    for termo in termos_filtrados:
-        resultados = buscar_nos_pdfs(termo)
-        if resultados:
-            resultados_totais.extend(resultados)
-    
-    return resultados_totais
-
-def buscar_nos_pdfs(termo_busca):
-    """Busca tradicional nos PDFs por correspondência exata."""
-    resultados_detalhados = []
-    
-    if not pdfs:
-        return resultados_detalhados
-    
+    if not pdfs: return []
+        
     for pdf in pdfs:
         caminho = os.path.join("data", pdf)
-        
         try:
             with open(caminho, "rb") as f:
                 reader = pypdf.PdfReader(f)
-                total_paginas = len(reader.pages)
                 
-                for page_num in range(min(total_paginas, 50)):  #Limita a 50 páginas por PDF
-                    try:
-                        page = reader.pages[page_num]
-                        texto = page.extract_text()
+                for i, page in enumerate(reader.pages):
+                    texto_pagina = page.extract_text()
+                    if not texto_pagina: continue
+                    
+                    texto_pagina_norm = normalizar_texto(texto_pagina)
+                    pontos = 0
+                    termos_encontrados_na_pagina = []
+                    
+                    #Sistema de Pontuação
+                    for termo in termos_busca:
+                        termo_norm = normalizar_texto(termo)
+                        if termo_norm in texto_pagina_norm:
+                            pontos += 1
+                            termos_encontrados_na_pagina.append(termo)
+                            #Densidade
+                            if texto_pagina_norm.count(termo_norm) > 2:
+                                pontos += 0.5
+                    
+                    if pontos > 0:
+                        #Baseado no primeiro termo encontrado
+                        termo_visual = termos_encontrados_na_pagina[0] if termos_encontrados_na_pagina else ""
+                        pos = texto_pagina.lower().find(termo_visual.lower()) if termo_visual else 0
+                        inicio = max(0, pos - 150)
+                        fim = min(len(texto_pagina), pos + 150)
+                        trecho = texto_pagina[inicio:fim].replace("\n", " ")
                         
-                        if texto and termo_busca.lower() in texto.lower():
-                            texto_lower = texto.lower()
-                            termo_lower = termo_busca.lower()
-                            pos = 0
-                            encontrados = 0
-                            
-                            #Limita a 5 ocorrências por página
-                            while encontrados < 5:
-                                pos = texto_lower.find(termo_lower, pos)
-                                if pos == -1:
-                                    break
-                                
-                                inicio = max(0, pos - 200)
-                                fim = min(len(texto), pos + len(termo_busca) + 200)
-                                contexto = texto[inicio:fim]
-                                
-                                if inicio > 0:
-                                    contexto = "... " + contexto
-                                if fim < len(texto):
-                                    contexto = contexto + " ..."
-                                
-                                #Encontra o termo exato no texto original (mantendo case)
-                                texto_original_secao = texto[inicio:fim]
-                                termo_exato = ""
-                                for i in range(inicio, fim - len(termo_busca) + 1):
-                                    if texto[i:i+len(termo_busca)].lower() == termo_lower:
-                                        termo_exato = texto[i:i+len(termo_busca)]
-                                        break
-                                
-                                contexto_formatado = contexto
-                                if termo_exato:
-                                    contexto_formatado = contexto.replace(
-                                        termo_exato, 
-                                        f"<mark>{termo_exato}</mark>"
-                                    )
-                                else:
-                                    contexto_formatado = contexto.replace(
-                                        termo_busca, 
-                                        f"<mark>{termo_busca}</mark>"
-                                    )
-                                
-                                resultados_detalhados.append({
-                                    "arquivo": pdf,
-                                    "pagina": page_num + 1,
-                                    "posicao": pos,
-                                    "contexto": contexto_formatado,
-                                    "texto_original": contexto,
-                                    "texto_limpo": re.sub(r'\s+', ' ', contexto.replace(termo_busca, "").strip()),
-                                    "tipo": "exata"
-                                })
-                                
-                                pos += len(termo_lower)
-                                encontrados += 1
-                                
-                    except Exception as e_page:
-                        print(f"Erro na página {page_num+1} do PDF {pdf}: {e_page}")
-                        continue
+                        melhores_paginas.append({
+                            "arquivo": pdf,
+                            "pagina": i + 1,
+                            "pontos": pontos,
+                            "termos_encontrados": termos_encontrados_na_pagina,
+                            "texto_para_ia": texto_pagina, # Página completa para IA
+                            "contexto": f"...{trecho}...", # Visual curto
+                            "tipo": f"Relevância: {pontos:.1f}"
+                        })
                         
         except Exception as e:
-            print(f"Erro ao abrir PDF {pdf}: {e}")
-            st.sidebar.warning(f"Erro em {pdf}: {str(e)[:50]}")
+            print(f"Erro ao ler {pdf}: {e}")
+            
+    #Ordenar e retornar TOP 10
+    melhores_paginas.sort(key=lambda x: x['pontos'], reverse=True)
+    top_resultados = melhores_paginas[:10]
     
-    print(f"DEBUG: Busca por '{termo_busca}' encontrou {len(resultados_detalhados)} resultados")
-    return resultados_detalhados
+    print(f"DEBUG: Retornando top {len(top_resultados)} páginas de {len(melhores_paginas)} encontradas.")
+    return top_resultados
 
-#IA (funçoes)
+#IA
 
-def extrair_contexto_para_ia(resultados, max_tokens=3000):
-    """Extrai contexto dos resultados para enviar à IA."""
+def extrair_contexto_para_ia(resultados, max_tokens=12000):
+    """
+    Extrai contexto enviando páginas completas para a IA e remove duplicatas.
+    """
     if not resultados:
         return "Nenhum documento relevante encontrado."
     
+    #um SET para evitar páginas duplicadas se multiplos termos cairem na mesma página
+    paginas_processadas = set()
     contextos = []
-    tokens_atuais = 0
+    tokens_estimados = 0
     
-    #Ordena por relevancia (mais ocorrências primeiro)
-    resultados_ordenados = sorted(resultados, key=lambda x: x.get("posicao", 0))
-    
-    for resultado in resultados_ordenados:
-        texto = resultado.get("texto_limpo", resultado.get("texto_original", ""))
-        #Remove marcações do HTML
-        texto_limpo = re.sub(r'<[^>]+>', '', texto)
+    #Ordenar resultados (já vêm ordenados por pontuação do buscar_inteligente, mas mantemos lógica)
+    for resultado in resultados:
+        chave_unica = (resultado['arquivo'], resultado['pagina'])
+        
+        #Se já foi essa página para a IA neste prompt, pula
+        if chave_unica in paginas_processadas:
+            continue
+            
+        paginas_processadas.add(chave_unica)
+        
+        #Pega o texto COMPLETO da página
+        texto_pagina = resultado.get("texto_para_ia", resultado.get("contexto", ""))
+        
+        #Limpeza (remove tags HTML no visual)
+        texto_limpo = re.sub(r'<[^>]+>', '', texto_pagina)
         texto_limpo = re.sub(r'\s+', ' ', texto_limpo).strip()
         
-        fonte = f"[Fonte: {resultado['arquivo']}, página {resultado['pagina']}]"
-        contexto_completo = f"{texto_limpo}\n{fonte}\n---\n"
+        cabecalho = f"\n--- [Documento: {resultado['arquivo']} | Página: {resultado['pagina']}] ---\n"
+        bloco_completo = cabecalho + texto_limpo
         
-        tokens_contexto = len(contexto_completo.split())  #Estimativa simples
+        #Estimativa simples de tokens
+        tokens_bloco = len(bloco_completo) / 3.5
         
-        if tokens_atuais + tokens_contexto <= max_tokens:
-            contextos.append(contexto_completo)
-            tokens_atuais += tokens_contexto
+        if tokens_estimados + tokens_bloco <= max_tokens:
+            contextos.append(bloco_completo)
+            tokens_estimados += tokens_bloco
         else:
-            espaço_restante = max_tokens - tokens_atuais
-            if espaço_restante > 100:  #Se ainda couber um tico
-                palavras = texto_limpo.split()[:espaço_restante]
-                texto_curto = " ".join(palavras) + "..."
-                contextos.append(f"{texto_curto}\n{fonte}\n")
+            print(f"DEBUG: Limite de tokens atingido ({int(tokens_estimados)}).")
             break
     
+    print(f"DEBUG: Contexto gerado com aprox. {int(tokens_estimados)} tokens de {len(paginas_processadas)} páginas únicas.")
     return "\n".join(contextos)
 
 def gerar_resposta_ia(pergunta, contexto, cliente_openai):
@@ -518,27 +502,24 @@ def gerar_resposta_ia(pergunta, contexto, cliente_openai):
     
     try:
         sistema_prompt = """Você é o Gambot, um assistente virtual especializado em regulamentos e 
-        procedimentos da Universidade Federal do Pará (UFPA). Sua função é responder perguntas 
-        baseando-se APENAS nas informações fornecidas nos documentos oficiais.
-
-        REGRAS IMPORTANTES:
-        1. Responda APENAS com base nas informações fornecidas no contexto
-        2. Se a informação não estiver no contexto, diga: "Não encontrei essa informação específica nos documentos oficiais da UFPA"
-        3. Seja claro, objetivo e use linguagem acadêmica apropriada
-        4. Sempre cite a fonte das informações (nome do documento e página)
-        5. Não invente informações ou especule, mas tente ao máximo encontrar uma resposta adequada.
-        6. Formate a resposta de forma organizada e legível
+        procedimentos da Universidade Federal do Pará (UFPA).
         
-        Contexto dos documentos oficiais da UFPA:
+        SUA MISSÃO:
+        Responder dúvidas acadêmicas baseando-se ESTRITAMENTE nos documentos fornecidos no contexto.
+        
+        REGRAS:
+        1. Contexto é a Verdade: Use APENAS o texto fornecido abaixo.
+        2. Citação Obrigatória: Para CADA afirmação, cite a fonte (Ex: "Segundo o Regulamento, Art. 15...").
+        3. Honestidade Intelectual: Se a resposta não estiver EXPLICITAMENTE no contexto, diga: "Não encontrei essa informação específica nos documentos fornecidos". NÃO invente. Se a resposta puder ser inferida claramente a partir do texto (ex: datas, prazos implícitos), explique a inferência e cite o trecho usado.
+        4. Clareza: Responda de forma direta, organizada (use tópicos se necessário) e em tom profissional/acadêmico.
+        
+        Contexto dos documentos (Páginas extraídas dos PDFs):
         {contexto}
         """
         
         prompt_usuario = f"""Pergunta do usuário: {pergunta}
 
-        Com base APENAS nas informações fornecidas nos documentos oficiais acima, responda:
-        1. Diretamente à pergunta
-        2. Cite as fontes específicas (documento e página)
-        3. Seja útil e completo, mas sem extrapolar além do que está nos documentos"""
+        Com base APENAS no contexto acima, responda à pergunta. Cite artigos, parágrafos e páginas sempre que possível."""
         
         response = cliente_openai.chat.completions.create(
             model=CONFIG_INICIAL["modelo"],
@@ -547,18 +528,22 @@ def gerar_resposta_ia(pergunta, contexto, cliente_openai):
                 {"role": "user", "content": prompt_usuario}
             ],
             temperature=0.3,
-            max_tokens=CONFIG_INICIAL["max_tokens"]
+            max_tokens=CONFIG_INICIAL["max_tokens"],
+            timeout=45 
         )
         
         resposta = response.choices[0].message.content
         return resposta, None
         
     except Exception as e:
-        return None, f"Erro na API da OpenAI: {str(e)}"
+        error_type = type(e).__name__
+        error_msg = str(e)
+        print(f"DEBUG: Erro na API OpenAI - Tipo: {error_type}, Mensagem: {error_msg}")
+        return None, f"Erro na API da OpenAI ({error_type}): {error_msg[:200]}"
 
-#interface principal 
+#Interface
 
-st.title("🎓 GAMBOT - Chatbot do Gam.py")
+st.title("GAMBOT")
 st.markdown("### Assistente Acadêmico Inteligente")
 
 #Layout principal
@@ -572,11 +557,11 @@ with col_esquerda:
         "Descreva sua dúvida sobre regulamentos, disciplinas, procedimentos ou qualquer assunto da UFPA:",
         value=st.session_state.pergunta_manual,
         height=100,
-        placeholder="Ex: Quais disciplinas do 6º período? Como funciona o trancamento de matrícula?",
+        placeholder="Ex: Como funciona o trancamento de matrícula?",
         key="pergunta_input"
     )
     
-    #Opçoes de busca
+    #Opções de busca
     col_busca1, col_busca2, col_busca3 = st.columns(3)
     
     with col_busca1:
@@ -588,11 +573,13 @@ with col_esquerda:
         )
     
     with col_busca2:
+        #Usa a chave da session_state
+        chave_disponivel = st.session_state.openai_api_key and st.session_state.openai_api_key.strip()
         buscar_com_ia = st.button(
             "Perguntar à IA",
             type="primary",
-            disabled=not (api_key and usar_ia),
-            help="Resposta inteligente baseada no contexto dos documentos",
+            disabled=not (chave_disponivel and usar_ia),
+            help="Resposta inteligente baseada no contexto dos documentos" + ("" if chave_disponivel else " (API Key necessária)"),
             use_container_width=True
         )
     
@@ -629,27 +616,26 @@ with col_direita:
         **Exemplos:**
         - "Qual o prazo para trancamento?"
         - "Como solicitar histórico escolar?"
-        - "Quais disciplinas do 6º período?"
         - "Art. 15 da resolução"
         - "Carga horária total do curso"
         """)
     
-    if api_key and usar_ia:
-        st.success("IA configurada")
+    if chave_disponivel and usar_ia:
+        st.success("✅ IA ativada e configurada!")
     elif usar_ia:
-        st.warning("Configure a API Key para usar a IA")
+        st.warning("⚠️ Configure a API Key para usar a IA")
     else:
-        st.info("IA desativada - use busca tradicional")
+        st.info("ℹ️ IA desativada - use busca tradicional")
 
-#processamento de buscas
+#Procedimento das buscas
 
 #Verifica se foi clicada uma FAQ
 if st.session_state.faq_clicada and pergunta:
-    if api_key and usar_ia:
+    st.session_state.faq_clicada = False
+    if chave_disponivel and usar_ia:
         buscar_com_ia = True
     else:
         buscar_tradicional = True
-    st.session_state.faq_clicada = False
 
 #Busca Tradicional
 if buscar_tradicional and pergunta:
@@ -658,31 +644,30 @@ if buscar_tradicional and pergunta:
     st.session_state.usar_ia_pergunta = False
     
     with st.spinner("Buscando nos documentos..."):
-        #Usar busca inteligente
         resultados_inteligente = buscar_inteligente(pergunta)
         
         st.session_state.resultados = resultados_inteligente
         st.session_state.resposta_ia = ""
 
 #Busca com IA
-elif buscar_com_ia and pergunta and api_key and usar_ia:
+elif buscar_com_ia and pergunta and chave_disponivel and usar_ia:
+    print(f"DEBUG: chave_atual no momento da busca com IA: {st.session_state.openai_api_key[:15]}...")
     st.session_state.contador_buscas += 1
     st.session_state.contador_ia += 1
     st.session_state.pergunta_manual = pergunta
     st.session_state.usar_ia_pergunta = True
     
     with st.spinner("Buscando e analisando com IA..."):
-        # Busca tradicional primeiro
+        #Busca os trechos/páginas relevantes
         resultados_inteligente = buscar_inteligente(pergunta)
-        
         st.session_state.resultados = resultados_inteligente
         
-        # Extrair contexto para IA
+        #Prepara o contexto
         contexto = extrair_contexto_para_ia(resultados_inteligente)
         st.session_state.contexto_ia = contexto
         
-        #Gerar resposta com IA
-        cliente = inicializar_openai(api_key)
+        #Chama a OpenAI
+        cliente = inicializar_openai(st.session_state.openai_api_key)
         if cliente:
             resposta, erro = gerar_resposta_ia(pergunta, contexto, cliente)
             if erro:
@@ -693,12 +678,11 @@ elif buscar_com_ia and pergunta and api_key and usar_ia:
         else:
             st.session_state.resposta_ia = "**Erro:** Não foi possível conectar à OpenAI. Verifique sua API Key."
 
-#Resultados
+#Resultados exibição
 
 if st.session_state.resultados:
     st.divider()
     
-    #Mostrar estatísticas
     resultados = st.session_state.resultados
     arquivos_unicos = set(r['arquivo'] for r in resultados)
     
@@ -713,27 +697,24 @@ if st.session_state.resultados:
         else:
             st.metric("Modo", "Busca Tradicional")
     
-    #Se foi usada ia, mostra a resposta primeiro
     if st.session_state.usar_ia_pergunta and st.session_state.resposta_ia:
-        st.subheader("🤖 Gambot:")
+        st.subheader("Resposta do Gambot:")
         
         with st.container():
             st.markdown(st.session_state.resposta_ia)
             
-            #Botão para mostrar/ocultar fontes
             col1, col2 = st.columns([1, 4])
             with col1:
-                if st.button("Mostrar Fontes", type="secondary"):
+                if st.button("📄 Mostrar Fontes", type="secondary"):
                     st.session_state.mostrar_fontes = not st.session_state.mostrar_fontes
             
             if st.session_state.mostrar_fontes and st.session_state.contexto_ia:
-                with st.expander("Contexto usado pela IA", expanded=False):
-                    st.text_area("", st.session_state.contexto_ia, height=300)
+                with st.expander("Contexto usado pela IA", expanded=True):
+                    st.text_area("Texto enviado ao GPT:", st.session_state.contexto_ia, height=300)
         
         st.divider()
-        st.subheader("📚 Trechos Encontrados nos Documentos")
+        st.subheader("Trechos Encontrados nos Documentos (Visualização)")
     
-    #Mostrar resultados detalhados
     arquivos_agrupados = {}
     for resultado in resultados:
         arquivo = resultado['arquivo']
@@ -745,20 +726,19 @@ if st.session_state.resultados:
         with st.expander(f"📄 **{arquivo}** ({len(ocorrencias)} ocorrência(s))", expanded=not st.session_state.usar_ia_pergunta):
             for i, ocorrencia in enumerate(ocorrencias[:5], 1):
                 st.markdown(f"**Página {ocorrencia['pagina']}**")
+                #Apenas o trecho curto visual, não a página inteira
                 st.markdown(ocorrencia['contexto'], unsafe_allow_html=True)
-                st.caption(f"Tipo: {ocorrencia['tipo']} | Posição: ~{ocorrencia['posicao']} caracteres")
+                st.caption(f"Tipo: {ocorrencia['tipo']}")
                 if i < len(ocorrencias[:5]):
                     st.divider()
 
-#Se não tiver resultado mas foi feita uma busca
 elif ("resultados" in st.session_state and not st.session_state.resultados and 
       st.session_state.pergunta_manual):
     
     st.divider()
     st.warning("❌ Nenhum resultado encontrado para sua busca.")
     
-    #Seção de sugestões
-    with st.expander("Sugestões de busca", expanded=True):
+    with st.expander("💡 Sugestões de busca", expanded=True):
         st.markdown("""
         **Tente estas abordagens:**
         1. **Termos específicos** como códigos de disciplinas
@@ -767,7 +747,6 @@ elif ("resultados" in st.session_state and not st.session_state.resultados and
         4. **Sinônimos** das palavras-chave
         """)
         
-        #Gera sugestões baseadas na pergunta
         sugestoes = []
         pergunta_lower = pergunta.lower()
         
@@ -789,7 +768,6 @@ elif ("resultados" in st.session_state and not st.session_state.resultados and
         if re.search(r'\bart\.\b', pergunta_lower):
             sugestoes.extend(["Art. 15", "Art. 24", "Art. 1º"])
         
-        #Se não encontrou sugestões específicas, mostra sugestões gerais
         if not sugestoes:
             sugestoes = [
                 "60h Teórica",
@@ -800,17 +778,15 @@ elif ("resultados" in st.session_state and not st.session_state.resultados and
                 "Componente Curricular"
             ]
         
-        #Mostrar sugestões como botões
         cols = st.columns(3)
         for i, sugestao in enumerate(sugestoes[:6]):
             with cols[i % 3]:
-                if st.button(f"🔍 {sugestao}", key=f"sug_{i}"):
+                if st.button(f"{sugestao}", key=f"sug_{i}"):
                     st.session_state.pergunta_manual = sugestao
                     st.rerun()
     
-    #Mostrar preview dos PDFs
     if pdfs and st.button("Mostrar conteúdo dos PDFs para referência"):
-        st.info("📖 Conteúdo inicial dos PDFs carregados:")
+        st.info("Conteúdo inicial dos PDFs carregados:")
         
         for pdf in pdfs[:2]:
             with st.expander(f"{pdf}", expanded=False):
@@ -831,7 +807,7 @@ elif ("resultados" in st.session_state and not st.session_state.resultados and
                 except Exception as e:
                     st.error(f"Erro ao ler {pdf}: {e}")
 
-#rodapé
+#Rodapé
 
 st.divider()
 st.markdown("---")
@@ -841,25 +817,23 @@ col_footer1, col_footer2, col_footer3 = st.columns([2, 1, 1])
 with col_footer1:
     st.markdown("""
     **Gambot UFPA** | Sistema híbrido de busca   
-     **Busca tradicional:** Localização por palavras-chave  
-     **IA:** Respostas contextuais com ChatGPT  
-     **Fontes oficiais:** Respostas baseadas apenas nos documentos  
-     **Tecnologia:** Python + Streamlit + OpenAI + RAG
+    🔍 **Busca tradicional:** Localização por palavras-chave   
+    🧠 **IA:** Respostas contextuais com ChatGPT   
+    📚 **Fontes oficiais:** Respostas baseadas apenas nos documentos   
+    ⚡ **Tecnologia:** Python + Streamlit + OpenAI + RAG
     """)
 
 with col_footer2:
     st.markdown(f"""
-    **Estatísticas:**  
-    Buscas: {st.session_state.contador_buscas}  
-    IA: {st.session_state.contador_ia}  
+    **Estatísticas:** Buscas: {st.session_state.contador_buscas}   
+    IA: {st.session_state.contador_ia}   
     PDFs: {len(pdfs)}
     """)
 
 with col_footer3:
     st.markdown(f"""
-    **Sistema:**  
-    {datetime.now().strftime('%d/%m/%Y')}  
-    {datetime.now().strftime('%H:%M:%S')}  
+    **Sistema:** {datetime.now().strftime('%d/%m/%Y')}   
+    {datetime.now().strftime('%H:%M:%S')}   
     Python 3.12
     """)
 
@@ -894,14 +868,14 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-#Inicialização
+#mensagem de inicialização 
 
 if __name__ == "__main__":
     print("\n" + "="*60)
     print("GAMBOT UFPA - Sistema Inteligente de Busca")
     print("="*60)
     print(f"PDFs carregados: {len(pdfs)}")
-    print(f"OpenAI: {'✅ Configurada' if api_key else '❌ Não configurada'}")
-    print(f"IA: {'✅ Ativada' if usar_ia else '❌ Desativada'}")
+    print(f"OpenAI: {'Configurada' if st.session_state.openai_api_key else 'Não configurada'}")
+    print(f"IA: {'Ativada' if usar_ia else 'Desativada'}")
     print(f"Acesse: http://localhost:8501")
     print("="*60)
