@@ -15,21 +15,30 @@ import unicodedata
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def carregar_configuracoes():
-    """Carrega configurações de várias fontes possíveis."""
-    
     config = {
         "api_key": "",
         "modelo": "gpt-4o-mini",
-        "max_tokens": 800 # Tokens de resposta(saída)
+        "max_tokens": 800
     }
-    
-    #tenta da variável de ambiente
+
+    #Tenta Streamlit Secrets (DEPLOY)
+    try:
+        if "OPENAI_API_KEY" in st.secrets:
+            chave = st.secrets["OPENAI_API_KEY"]
+            if chave and chave.strip():
+                config["api_key"] = chave.strip()
+                print("DEBUG: Chave carregada via st.secrets")
+                return config
+    except Exception as e:
+        print(f"DEBUG: Erro lendo st.secrets: {e}")
+
+    #Tenta variável de ambiente 
     chave_env = os.environ.get("OPENAI_API_KEY")
     if chave_env and chave_env.strip():
         config["api_key"] = chave_env.strip()
-        print(f"DEBUG: Chave carregada do ambiente, comprimento: {len(config['api_key'])}")
+        print("DEBUG: Chave carregada do ambiente")
         return config
-    
+
     #Tenta tb de arquivos .env em locais comuns
     locais_arquivos = [
         ".env",
@@ -529,7 +538,7 @@ def gerar_resposta_ia(pergunta, contexto, cliente_openai):
             ],
             temperature=0.3,
             max_tokens=CONFIG_INICIAL["max_tokens"],
-            timeout=45 
+            #timeout=45 
         )
         
         resposta = response.choices[0].message.content
