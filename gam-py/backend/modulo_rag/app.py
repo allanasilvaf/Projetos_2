@@ -6,12 +6,225 @@ from datetime import datetime
 from openai import OpenAI
 import hashlib
 import sys
-import time
 import unicodedata
 
-#config inicial
+#Configuração da página
+st.set_page_config(
+    page_title="Gambot",
+    page_icon="🎓",
+    layout="wide"
+)
 
-#Add o diretório atual ao path para importações
+#CSS p os botões
+st.markdown("""
+<style>
+
+    button[kind="secondary"] span,
+    button[kind="primary"] span {
+        color: inherit !important;
+    }
+    
+    div.stButton > button[data-testid="baseButton-secondary"] {
+        background-color: #011627 !important;
+        border-color: #011627 !important;
+        color: #FFFFFF !important;
+        font-weight: 500 !important;
+    }
+    
+    div.stButton > button[data-testid="baseButton-secondary"]:hover {
+        background-color: #022a46 !important;
+        border-color: #022a46 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 12px rgba(1, 22, 39, 0.3) !important;
+    }
+    
+    div.stButton > button[data-testid="baseButton-secondary"]:focus {
+        background-color: #011627 !important;
+        border-color: #011627 !important;
+        color: #FFFFFF !important;
+    }
+    
+    div.stButton > button[data-testid="baseButton-secondary"] {
+        background-color: #011627 !important;
+        border-color: #011627 !important;
+        color: #FFFFFF !important;
+        font-weight: 500 !important;
+    }
+    
+    div.stButton > button[data-testid="baseButton-primary"] {
+        background-color: #6BA368 !important;
+        border-color: #6BA368 !important;
+        color: #FFFFFF !important;
+        font-weight: 500 !important;
+    }
+    
+    div.stButton > button[data-testid="baseButton-primary"]:hover {
+        background-color: #5a8f57 !important;
+        border-color: #5a8f57 !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 12px rgba(107, 163, 104, 0.3) !important;
+    }
+    
+    div.stButton > button[data-testid="baseButton-primary"]:disabled {
+        background-color: #95c193 !important;
+        border-color: #95c193 !important;
+        color: #FFFFFF !important;
+        opacity: 0.7 !important;
+    }
+    
+    button[kind="secondary"] div p,
+    button[kind="secondary"] div,
+    button[kind="secondary"] span {
+        color: #FFFFFF !important;
+    }
+    
+    button[kind="primary"] div p,
+    button[kind="primary"] div,
+    button[kind="primary"] span {
+        color: #FFFFFF !important;
+    }
+    
+    div.stButton > button {
+        transition: all 0.3s ease !important;
+    }
+    
+    div.stButton > button:hover {
+        transform: translateY(-2px) !important;
+    }
+    
+    .main .block-container, 
+    .main .stMarkdown, 
+    .main p, 
+    .main div, 
+    .main span,
+    .main li,
+    .main .stExpander,
+    .main .stAlert,
+    .main .stTextArea textarea,
+    .main .stTextInput input {
+        color: #011627 !important;
+    }
+    
+    .stTextArea textarea,
+    .stTextInput input {
+        color: #011627 !important;
+        background-color: white !important;
+    }
+    
+    .stTextArea textarea::placeholder,
+    .stTextInput input::placeholder {
+        color: #666666 !important;
+        opacity: 0.8;
+    }
+    
+    .main h1, .main h2, .main h3, .main h4, .main h5, .main h6 {
+        color: #011627 !important;
+    }
+    
+    /* Container principal */
+    .main .block-container {
+        background-color: #EAF4F4;
+    }
+    
+    /* Checkboxes e radios */
+    .main .stCheckbox span,
+    .main .stRadio span {
+        color: #011627 !important;
+    }
+    
+    /* Labels */
+    .main .stTextInput label,
+    .main .stTextArea label,
+    .main .stSelectbox label {
+        color: #011627 !important;
+    }
+    
+    /* Sidebar c texto claro */
+    .stSidebar,
+    .stSidebar * {
+        color: #EAF4F4 !important;
+    }
+    
+    .stSidebar .stRadio label,
+    .stSidebar .stCheckbox label,
+    .stSidebar .stTextInput label {
+        color: #EAF4F4 !important;
+    }
+    
+    /* Inputs na sidebar */
+    .stSidebar .stTextInput input,
+    .stSidebar .stTextArea textarea {
+        color: #EAF4F4 !important;
+        background-color: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    mark {
+        background-color: #FFEB3B;
+        padding: 0.1em 0.3em;
+        border-radius: 0.2em;
+        font-weight: bold;
+        color: #011627 !important;
+    }
+    
+    .st-expander {
+        border: 1px solid #6BA368;
+        border-radius: 8px;
+        background-color: #EAF4F4;
+    }
+    
+    /* Sidebar */
+    .stSidebar {
+        background-color: #011627;
+    }
+    
+    /* Alertas na sidebar */
+    .stSidebar .stSuccess {
+        background-color: #6BA368 !important;
+        color: white !important;
+    }
+    
+    .stSidebar .stWarning {
+        background-color: #ff9800 !important;
+        color: white !important;
+    }
+    
+    .stSidebar .stInfo {
+        background-color: #2196F3 !important;
+        color: white !important;
+    }
+    
+    .stSidebar .stError {
+        background-color: #f44336 !important;
+        color: white !important;
+    }
+    
+    .stMetric {
+        background-color: #EAF4F4;
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid #6BA368;
+        color: #011627 !important;
+    }
+    
+    /* Inputs e selects */
+    .stTextArea textarea {
+        background-color: white;
+        border: 1px solid #6BA368;
+    }
+    
+    .stTextInput input {
+        background-color: white;
+        border: 1px solid #6BA368;
+    }
+    
+    .stSelectbox select {
+        background-color: white;
+        border: 1px solid #6BA368;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# Adiciona o diretório atual ao path para importações
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 def carregar_configuracoes():
@@ -21,7 +234,7 @@ def carregar_configuracoes():
         "max_tokens": 800
     }
 
-    #Tenta Streamlit Secrets (DEPLOY)
+    # Tenta o Streamlit Secrets
     try:
         if "OPENAI_API_KEY" in st.secrets:
             chave = st.secrets["OPENAI_API_KEY"]
@@ -32,14 +245,14 @@ def carregar_configuracoes():
     except Exception as e:
         print(f"DEBUG: Erro lendo st.secrets: {e}")
 
-    #Tenta variável de ambiente 
+    # Tenta variável de ambiente 
     chave_env = os.environ.get("OPENAI_API_KEY")
     if chave_env and chave_env.strip():
         config["api_key"] = chave_env.strip()
         print("DEBUG: Chave carregada do ambiente")
         return config
 
-    #Tenta tb de arquivos .env em locais comuns
+    # Tenta tb de arquivos .env em locais comuns
     locais_arquivos = [
         ".env",
         "api_key.env",
@@ -69,19 +282,11 @@ def carregar_configuracoes():
     
     return config
 
-#carrega as configs iniciais
+# Carrega as configs iniciais
 CONFIG_INICIAL = carregar_configuracoes()
 print(f"DEBUG: Config carregada - Chave: {bool(CONFIG_INICIAL['api_key'])}, Modelo: {CONFIG_INICIAL['modelo']}")
 
-# cnfiguração da página
-st.set_page_config(
-    page_title="Gambot",
-    page_icon="🎓",
-    layout="wide"
-)
-
-#Funções principais
-
+# Funções principais
 def inicializar_openai(api_key):
     """Inicializa o cliente da OpenAI de forma segura."""
     if not api_key or not api_key.strip():
@@ -89,22 +294,22 @@ def inicializar_openai(api_key):
         return None
     
     try:
-        #remove possíveis espaços ou caracteres extras
+        # remove possíveis espaços ou caracteres extras
         chave_limpa = api_key.strip()
         
-        #verifica se a chave parece válida
+        # verifica se a chave parece válida
         if not chave_limpa.startswith("sk-"):
-            #Tenta extrair a chave se estiver em texto maior
+            # Tenta extrair a chave se estiver em texto maior
             match = re.search(r'sk-[a-zA-Z0-9]{20,}', chave_limpa)
             if match:
                 chave_limpa = match.group(0)
             else:
                 return None
         
-        #Inicializa o cliente
+        # Inicializa o cliente
         client = OpenAI(api_key=chave_limpa)
         
-        #Testa a conexão com uma chamada teste
+        # Testa a conexão com uma chamada teste
         try:
             client.models.list(timeout=5)
         except Exception as test_e:
@@ -115,8 +320,7 @@ def inicializar_openai(api_key):
         print(f"Erro ao inicializar OpenAI: {type(e).__name__}: {str(e)}")
         return None
 
-#Inicialização do estado da sessão
-
+# Inicialização do estado da sessão
 if "contador_buscas" not in st.session_state:
     st.session_state.contador_buscas = 0
 if "contador_ia" not in st.session_state:
@@ -138,36 +342,34 @@ if "faq_clicada" not in st.session_state:
 if "openai_api_key" not in st.session_state:
     st.session_state.openai_api_key = ""
 
-#verificação dos pdfs
-
-#Verifica se a pasta data existe
+# Verificação dos PDFs
+# Verifica se a pasta data existe
 if not os.path.exists("data"):
     os.makedirs("data")
     print("Pasta 'data' criada")
 
-#Lista PDFs
+# Lista PDFs
 pdfs = []
 if os.path.exists("data"):
     pdfs = [f for f in os.listdir("data") if f.lower().endswith(".pdf")]
     print(f"DEBUG: {len(pdfs)} PDF(s) encontrado(s): {pdfs}")
 
-#sidebar c as configs
-
+# Sidebar com as configs
 with st.sidebar:
     st.header("Configurações")
     
-    #Configuração da API Key
+    # Configuração da API Key
     st.subheader("API da OpenAI")
     
-    #Inicializa a chave na session_state se não existir
+    # Inicializa a chave na session_state se não existir
     if "openai_api_key" not in st.session_state:
         st.session_state.openai_api_key = CONFIG_INICIAL.get("api_key", "")
 
-    #Verifica se há chave padrão
+    # Verifica se há chave padrão
     tem_chave_padrao = bool(CONFIG_INICIAL["api_key"])
     
     if tem_chave_padrao:
-        st.info("✅ Chave padrão detectada")
+        st.info("Chave padrão detectada")
         
         if "opcao_chave" not in st.session_state:
             st.session_state.opcao_chave = "Usar chave padrão"
@@ -296,8 +498,7 @@ with st.sidebar:
             st.session_state.faq_clicada = True
             st.rerun()
 
-#Dicionário de sinônimos
-
+# Dicionário de sinônimos
 SINONIMOS = {
     "carga horária": ["CH", "horas", "h", "carga", "horária"],
     "disciplina": ["matéria", "componente curricular", "curso"],
@@ -340,16 +541,11 @@ SINONIMOS = {
     "formado": ["egresso", "graduado", "diplomado"],
     "evasão": ["abandono", "desistência", "saída"],
     "período": ["semestre", "fase", "etapa", "nível", "periodo"],
-    "6º": ["6", "sexto", "6o", "6º", "seis", "sexto nível"],
     "jubilamento": ["desligamento", "expulsão", "eliminação", "cancelamento de matrícula"],
     "trancamento de matrícula": ["trancar matrícula", "suspender matrícula", "cancelar matrícula temporariamente"],
     "histórico escolar": ["boletim", "registro acadêmico", "notas", "histórico acadêmico"],
     "prazo": ["período", "tempo", "data limite", "vencimento", "limite"],
     "solicitar": ["pedir", "requerer", "requisitar", "obter", "conseguir"],
-    "disciplinas do 6º período": ["6º nível", "sexto semestre", "disciplinas do sexto nível"],
-    "qual o prazo": ["qual o período", "qual o tempo", "qual a data"],
-    "como solicitar": ["como pedir", "como requerer", "como obter"],
-    "quais disciplinas": ["quais matérias", "quais cursos", "quais componentes curriculares"],
     "componente curricular": ["disciplina", "matéria", "curso", "unidade curricular"],
     "artigo": ["art.", "art", "artigo"],
     "parágrafo": ["§", "parágrafo único", "paragrafo"],
@@ -357,8 +553,7 @@ SINONIMOS = {
     "resolução": ["norma", "regra", "decisão", "deliberação"]
 }
 
-#Funções de busca
-
+# Funções de busca
 def normalizar_texto(texto):
     """Remove acentos e coloca em minúsculas para comparação."""
     if not texto: return ""
@@ -374,7 +569,7 @@ def buscar_inteligente(pergunta_usuario):
     
     print(f"DEBUG: Iniciando busca por ranking para: '{pergunta_usuario}'")
     
-    #Preparar os termos de busca
+    # Preparar os termos de busca
     termos_busca = set()
     palavras_irrelevantes = {"quais", "qual", "como", "quando", "onde", "porque", "que", "para", "com", "dos", "das", "pelo", "pela", "estou", "quero", "saber"}
     palavras = pergunta_usuario.lower().split()
@@ -387,20 +582,10 @@ def buscar_inteligente(pergunta_usuario):
                 for sin in SINONIMOS[limpa][:2]: # Top 2 sinônimos
                     termos_busca.add(sin)
     
-    #Tratamentos hardcoded 
-    pergunta_norm = normalizar_texto(pergunta_usuario)
-    if "6" in pergunta_usuario or "sexto" in pergunta_norm:
-        termos_busca.add("6")
-        termos_busca.add("sexto")
-        termos_busca.add("nivel")
-    
-    if "grade" in pergunta_norm or "disciplina" in pergunta_norm:
-        termos_busca.add("componente")
-        termos_busca.add("curricular")
-    
+    #confia nos sinônimos
     print(f"DEBUG: Termos considerados: {termos_busca}")
     
-    #Varrer PDFs e pontuar
+    # Varrer PDFs e pontuar
     melhores_paginas = []
     
     if not pdfs: return []
@@ -419,18 +604,18 @@ def buscar_inteligente(pergunta_usuario):
                     pontos = 0
                     termos_encontrados_na_pagina = []
                     
-                    #Sistema de Pontuação
+                    # Sistema de Pontuação
                     for termo in termos_busca:
                         termo_norm = normalizar_texto(termo)
                         if termo_norm in texto_pagina_norm:
                             pontos += 1
                             termos_encontrados_na_pagina.append(termo)
-                            #Densidade
+                            # Densidade
                             if texto_pagina_norm.count(termo_norm) > 2:
                                 pontos += 0.5
                     
                     if pontos > 0:
-                        #Baseado no primeiro termo encontrado
+                        # Baseado no primeiro termo encontrado
                         termo_visual = termos_encontrados_na_pagina[0] if termos_encontrados_na_pagina else ""
                         pos = texto_pagina.lower().find(termo_visual.lower()) if termo_visual else 0
                         inicio = max(0, pos - 150)
@@ -450,15 +635,14 @@ def buscar_inteligente(pergunta_usuario):
         except Exception as e:
             print(f"Erro ao ler {pdf}: {e}")
             
-    #Ordenar e retornar TOP 10
+    # Ordenar e retornar TOP 10
     melhores_paginas.sort(key=lambda x: x['pontos'], reverse=True)
     top_resultados = melhores_paginas[:10]
     
     print(f"DEBUG: Retornando top {len(top_resultados)} páginas de {len(melhores_paginas)} encontradas.")
     return top_resultados
 
-#IA
-
+# IA
 def extrair_contexto_para_ia(resultados, max_tokens=12000):
     """
     Extrai contexto enviando páginas completas para a IA e remove duplicatas.
@@ -466,32 +650,32 @@ def extrair_contexto_para_ia(resultados, max_tokens=12000):
     if not resultados:
         return "Nenhum documento relevante encontrado."
     
-    #um SET para evitar páginas duplicadas se multiplos termos cairem na mesma página
+    # um SET para evitar páginas duplicadas se multiplos termos cairem na mesma página
     paginas_processadas = set()
     contextos = []
     tokens_estimados = 0
     
-    #Ordenar resultados (já vêm ordenados por pontuação do buscar_inteligente, mas mantemos lógica)
+    # Ordenar resultados (já vêm ordenados por pontuação do buscar_inteligente, mas mantemos lógica)
     for resultado in resultados:
         chave_unica = (resultado['arquivo'], resultado['pagina'])
         
-        #Se já foi essa página para a IA neste prompt, pula
+        # Se já foi essa página para a IA neste prompt, pula
         if chave_unica in paginas_processadas:
             continue
             
         paginas_processadas.add(chave_unica)
         
-        #Pega o texto COMPLETO da página
+        # Pega o texto COMPLETO da página
         texto_pagina = resultado.get("texto_para_ia", resultado.get("contexto", ""))
         
-        #Limpeza (remove tags HTML no visual)
+        # Limpeza (remove tags HTML no visual)
         texto_limpo = re.sub(r'<[^>]+>', '', texto_pagina)
         texto_limpo = re.sub(r'\s+', ' ', texto_limpo).strip()
         
         cabecalho = f"\n--- [Documento: {resultado['arquivo']} | Página: {resultado['pagina']}] ---\n"
         bloco_completo = cabecalho + texto_limpo
         
-        #Estimativa simples de tokens
+        # Estimativa simples de tokens
         tokens_bloco = len(bloco_completo) / 3.5
         
         if tokens_estimados + tokens_bloco <= max_tokens:
@@ -538,7 +722,6 @@ def gerar_resposta_ia(pergunta, contexto, cliente_openai):
             ],
             temperature=0.3,
             max_tokens=CONFIG_INICIAL["max_tokens"],
-            #timeout=45 
         )
         
         resposta = response.choices[0].message.content
@@ -550,16 +733,14 @@ def gerar_resposta_ia(pergunta, contexto, cliente_openai):
         print(f"DEBUG: Erro na API OpenAI - Tipo: {error_type}, Mensagem: {error_msg}")
         return None, f"Erro na API da OpenAI ({error_type}): {error_msg[:200]}"
 
-#Interface
+# Layout principal
+st.markdown("<h1 style='text-align: center; font-family: Arial, sans-serif; color: #011627;'>GAMBOT</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center; color: #6BA368;'>Assistente Acadêmico Inteligente</h3>", unsafe_allow_html=True)
 
-st.title("GAMBOT")
-st.markdown("### Assistente Acadêmico Inteligente")
-
-#Layout principal
 col_esquerda, col_direita = st.columns([2, 1])
 
 with col_esquerda:
-    #Área de entrada da pergunta
+    # Área de entrada da pergunta
     st.subheader("Faça sua pergunta")
     
     pergunta = st.text_area(
@@ -570,22 +751,22 @@ with col_esquerda:
         key="pergunta_input"
     )
     
-    #Opções de busca
+    # Opções de busca - Vamos usar HTML personalizado para garantir as cores
     col_busca1, col_busca2, col_busca3 = st.columns(3)
     
     with col_busca1:
         buscar_tradicional = st.button(
-            "🔍 Busca Tradicional",
+            "Busca Tradicional",
             type="secondary",
             help="Busca exata por palavras-chave nos documentos",
             use_container_width=True
         )
     
     with col_busca2:
-        #Usa a chave da session_state
+        # Usa a chave da session_state
         chave_disponivel = st.session_state.openai_api_key and st.session_state.openai_api_key.strip()
         buscar_com_ia = st.button(
-            "🧠 Perguntar à IA",
+            "Perguntar à IA",
             type="primary",
             disabled=not (chave_disponivel and usar_ia),
             help="Resposta inteligente baseada no contexto dos documentos" + ("" if chave_disponivel else " (API Key necessária)"),
@@ -594,7 +775,7 @@ with col_esquerda:
     
     with col_busca3:
         limpar = st.button(
-            "🗑️ Limpar Tudo",
+            "Limpar Tudo",
             type="secondary",
             help="Limpa resultados e conversa",
             use_container_width=True
@@ -611,7 +792,7 @@ with col_esquerda:
         st.rerun()
 
 with col_direita:
-    #Informações rápidas
+    # Informações rápidas
     st.subheader("Como usar")
     
     with st.expander("Dicas", expanded=True):
@@ -630,15 +811,14 @@ with col_direita:
         """)
     
     if chave_disponivel and usar_ia:
-        st.success("✅ IA ativada e configurada!")
+        st.success("Uso de IA ativado!")
     elif usar_ia:
         st.warning("⚠️ Configure a API Key para usar a IA")
     else:
-        st.info("ℹ️ IA desativada - use busca tradicional")
+        st.info("IA desativada: use busca tradicional")
 
-#Procedimento das buscas
-
-#Verifica se foi clicada uma FAQ
+# Procedimento das buscas
+# Verifica se foi clicada uma FAQ
 if st.session_state.faq_clicada and pergunta:
     st.session_state.faq_clicada = False
     if chave_disponivel and usar_ia:
@@ -646,7 +826,7 @@ if st.session_state.faq_clicada and pergunta:
     else:
         buscar_tradicional = True
 
-#Busca Tradicional
+# Busca Tradicional
 if buscar_tradicional and pergunta:
     st.session_state.contador_buscas += 1
     st.session_state.pergunta_manual = pergunta
@@ -658,7 +838,7 @@ if buscar_tradicional and pergunta:
         st.session_state.resultados = resultados_inteligente
         st.session_state.resposta_ia = ""
 
-#Busca com IA
+# Busca com IA
 elif buscar_com_ia and pergunta and chave_disponivel and usar_ia:
     print(f"DEBUG: chave_atual no momento da busca com IA: {st.session_state.openai_api_key[:15]}...")
     st.session_state.contador_buscas += 1
@@ -667,15 +847,15 @@ elif buscar_com_ia and pergunta and chave_disponivel and usar_ia:
     st.session_state.usar_ia_pergunta = True
     
     with st.spinner("Buscando e analisando com IA..."):
-        #Busca os trechos/páginas relevantes
+        # Busca os trechos/páginas relevantes
         resultados_inteligente = buscar_inteligente(pergunta)
         st.session_state.resultados = resultados_inteligente
         
-        #Prepara o contexto
+        # Prepara o contexto
         contexto = extrair_contexto_para_ia(resultados_inteligente)
         st.session_state.contexto_ia = contexto
         
-        #Chama a OpenAI
+        # Chama a OpenAI
         cliente = inicializar_openai(st.session_state.openai_api_key)
         if cliente:
             resposta, erro = gerar_resposta_ia(pergunta, contexto, cliente)
@@ -687,8 +867,7 @@ elif buscar_com_ia and pergunta and chave_disponivel and usar_ia:
         else:
             st.session_state.resposta_ia = "**Erro:** Não foi possível conectar à OpenAI. Verifique sua API Key."
 
-#Resultados exibição
-
+# Resultados exibição
 if st.session_state.resultados:
     st.divider()
     
@@ -735,7 +914,7 @@ if st.session_state.resultados:
         with st.expander(f"📄 **{arquivo}** ({len(ocorrencias)} ocorrência(s))", expanded=not st.session_state.usar_ia_pergunta):
             for i, ocorrencia in enumerate(ocorrencias[:5], 1):
                 st.markdown(f"**Página {ocorrencia['pagina']}**")
-                #Apenas o trecho curto visual, não a página inteira
+                # Apenas o trecho curto visual, não a página inteira
                 st.markdown(ocorrencia['contexto'], unsafe_allow_html=True)
                 st.caption(f"Tipo: {ocorrencia['tipo']}")
                 if i < len(ocorrencias[:5]):
@@ -747,7 +926,7 @@ elif ("resultados" in st.session_state and not st.session_state.resultados and
     st.divider()
     st.warning("❌ Nenhum resultado encontrado para sua busca.")
     
-    with st.expander("💡 Sugestões de busca", expanded=True):
+    with st.expander("Sugestões de busca", expanded=True):
         st.markdown("""
         **Tente estas abordagens:**
         1. **Termos específicos** como códigos de disciplinas
@@ -816,8 +995,7 @@ elif ("resultados" in st.session_state and not st.session_state.resultados and
                 except Exception as e:
                     st.error(f"Erro ao ler {pdf}: {e}")
 
-#Rodapé
-
+# Rodapé
 st.divider()
 st.markdown("---")
 
@@ -826,10 +1004,10 @@ col_footer1, col_footer2, col_footer3 = st.columns([2, 1, 1])
 with col_footer1:
     st.markdown("""
     **Gambot UFPA** | Sistema híbrido de busca   
-    🔍 **Busca tradicional:** Localização por palavras-chave   
-    🧠 **IA:** Respostas contextuais com ChatGPT   
-    📚 **Fontes oficiais:** Respostas baseadas apenas nos documentos   
-    ⚡ **Tecnologia:** Python + Streamlit + OpenAI + RAG
+     **Busca tradicional:** Localização por palavras-chave   
+     **IA:** Respostas contextuais com ChatGPT   
+     **Fontes oficiais:** Respostas baseadas apenas nos documentos   
+     **Tecnologia:** Python + Streamlit + OpenAI + RAG
     """)
 
 with col_footer2:
@@ -846,39 +1024,7 @@ with col_footer3:
     Python 3.12
     """)
 
-#CSS
-
-st.markdown("""
-<style>
-    mark {
-        background-color: #FFEB3B;
-        padding: 0.1em 0.3em;
-        border-radius: 0.2em;
-        font-weight: bold;
-    }
-    
-    .stButton > button {
-        transition: all 0.3s;
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    
-    .st-expander {
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-    }
-    
-    .stAlert {
-        border-radius: 8px;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-#mensagem de inicialização 
-
+# Mensagem de inicialização 
 if __name__ == "__main__":
     print("\n" + "="*60)
     print("GAMBOT UFPA - Sistema Inteligente de Busca")
