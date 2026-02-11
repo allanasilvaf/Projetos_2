@@ -10,9 +10,16 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
-  // 🔽 ADICIONE APENAS ESTA SEÇÃO:
-  server: {
-    port: 5174,
-    host: true
+  
+server: {
+    host: true,      // Permite acesso externo (0.0.0.0)
+    port: 5174,      // Sua porta
+    strictPort: true,
+    watch: {
+      usePolling: true, // <--- ISSO RESOLVE O SEU PROBLEMA
+    },
+    hmr: {
+      port: 5174, // Garante que o hot reload bata na porta certa
+    }
   }
 })

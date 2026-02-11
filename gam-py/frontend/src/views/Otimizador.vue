@@ -2,7 +2,7 @@
   <div class="calc-container">
     <div class="calc-card">
       
-      <div class="system-brand-premium brand-optimizer">
+      <div class="system-brand-premium">
         <div class="brand-content">
           <span class="code-icon">⚡</span>
           <span class="brand-text">Otimizador de Grade <span class="brand-highlight">- GAM.py</span></span>
@@ -20,27 +20,30 @@
         <div class="add-box">
           <p class="section-title">Adicionar Matéria Concluída:</p>
           <div class="input-row">
-            <input type="text" v-model="novaNota.codigo" placeholder="Código (Ex: MAT001)" class="flex-1">
-            <input type="number" v-model.number="novaNota.valor" step="0.01" min="0" max="10" placeholder="Nota (Ex: 8.50)" class="flex-1">
+            <input type="text" v-model="novaNota.codigo" placeholder="Código (Ex: MAT001)" class="flex-2">
+            <input type="number" v-model.number="novaNota.valor" step="0.01" min="0" max="10" placeholder="Nota" class="flex-1">
             <button @click="adicionarAoHistorico" class="btn-add" :disabled="!isNotaValida">+</button>
           </div>
         </div>
 
         <div v-if="historicoNotas.length > 0" class="list-container">
           <div v-for="(item, index) in historicoNotas" :key="index" class="disc-row">
-            <span><strong>{{ item.codigo }}</strong></span>
-            <span class="nota-badge">{{ item.valor.toFixed(2) }}</span>
-            <button @click="historicoNotas.splice(index, 1)" class="btn-del">✕</button>
+            <span class="disc-name"><strong>{{ item.codigo }}</strong></span>
+            <div class="disc-details">
+              <span class="nota-badge">{{ item.valor.toFixed(2) }}</span>
+              <button @click="historicoNotas.splice(index, 1)" class="btn-del">✕</button>
+            </div>
           </div>
         </div>
 
-        <div class="action-footer">
+        <div class="action-footer-vertical">
           <div class="info-alert">
-            <p>💡 A ML cruzará os códigos das matérias que você já cursou para encontrar padrões de desempenho.</p>
+            <span class="icon">💡</span>
+            <p>A ML cruzará os códigos das matérias que você já cursou para encontrar padrões de desempenho.</p>
           </div>
           <button 
             @click="gerarRecomendacao" 
-            class="btn-optimizer" 
+            class="btn-primary btn-full" 
             :disabled="historicoNotas.length < 2 || loading"
           >
             <span v-if="loading" class="spinner"></span>
@@ -49,9 +52,9 @@
         </div>
       </div>
 
-      <div v-else class="results-container">
-        <h3>Sugestões para o Próximo Semestre:</h3>
-        <p class="small-info">Disciplinas com maior probabilidade de sucesso baseadas no seu perfil:</p>
+      <div v-else class="results-container animate-pop">
+        <h3 class="results-title">Sugestões para o Próximo Semestre:</h3>
+        <p class="small-info text-center">Disciplinas com maior afinidade baseadas no seu perfil:</p>
         
         <div class="sugestao-grid">
           <div v-for="(sug, index) in recomendacoes" :key="index" class="sugestao-card">
@@ -60,7 +63,9 @@
             </div>
             <h4>{{ sug.nome }}</h4>
             <p class="codigo-sub">{{ sug.codigo }}</p>
-            <div class="progress-bar"><div class="progress" :style="{width: sug.afinidade + '%'}"></div></div>
+            <div class="progress-bar">
+              <div class="progress" :style="{width: sug.afinidade + '%'}"></div>
+            </div>
           </div>
         </div>
 
@@ -95,7 +100,6 @@ export default {
     },
     async gerarRecomendacao() {
       this.loading = true;
-      // Simulando a rede neural processando as notas (Ex: 7.55, 8.00...)
       setTimeout(() => {
         this.recomendacoes = [
           { codigo: 'INF003', nome: 'Algoritmos Avançados', afinidade: 94 },
@@ -111,59 +115,99 @@ export default {
 </script>
 
 <style scoped>
-/* Estilo base mantendo a Calculadora */
+/* 1. Layout Base (Padronizado Verde GAM.py) */
 .calc-container {
   min-height: 100vh;
   display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  background: linear-gradient(135deg, #2c5530 0%, #4a7c59 100%);
   padding: 20px; font-family: sans-serif;
 }
 
 .calc-card {
   width: 100%; max-width: 700px; background: white; border-radius: 20px;
-  padding: 65px 40px 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  padding: 65px 45px 45px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
   position: relative; overflow: hidden;
 }
 
-.system-brand-premium.brand-optimizer {
-  background: #0f1c2e; position: absolute; top: 0; left: 0; right: 0;
-  height: 40px; display: flex; align-items: center; justify-content: center;
+/* 2. Branding Superior */
+.system-brand-premium {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 40px; background: #1e3020;
+  display: flex; align-items: center; justify-content: center;
 }
 
-.code-icon { color: #00d2ff; font-family: monospace; font-weight: bold; margin-right: 10px; }
-.brand-text { color: white; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
-.brand-highlight { color: #00d2ff; }
+.code-icon { color: #4ade80; font-family: monospace; font-weight: bold; margin-right: 10px; }
+.brand-text { color: white; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; }
+.brand-highlight { color: #4ade80; }
 
-.section-title { font-size: 14px; font-weight: 700; color: #1e3c72; margin-bottom: 10px; text-align: left; }
-.input-row { display: flex; gap: 10px; margin-bottom: 15px; }
-.flex-1 { flex: 1; }
+/* 3. Tipografia e Cabeçalho */
+.calc-header h1 { color: #2c5530; font-size: 26px; font-weight: 700; margin: 10px 0 8px; }
+.subtitle { color: #666; font-size: 15px; margin-bottom: 0; line-height: 1.4; }
+.divider { border: 0; height: 1px; background: #eee; margin: 25px 0 35px 0; }
 
-.nota-badge { background: #e3f2fd; color: #1e3c72; padding: 4px 12px; border-radius: 6px; font-weight: 700; }
+.section-title { font-size: 14px; font-weight: 700; color: #2c5530; margin-bottom: 12px; text-align: left; }
+.add-box { background: #f4f7f4; padding: 20px; border-radius: 12px; margin-bottom: 25px; }
+.input-row { display: flex; gap: 10px; }
+.flex-2 { flex: 2; } .flex-1 { flex: 1; }
 
-.btn-optimizer {
-  width: 100%; background: #1e3c72; color: white; padding: 18px; border: none;
-  border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.3s;
+input { 
+  width: 100%; padding: 14px; border: 1.5px solid #eee; border-radius: 10px; 
+  background: #fcfcfc; box-sizing: border-box; transition: all 0.3s;
 }
+input:focus { outline: none; border-color: #2c5530; background: white; }
 
-.sugestao-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin: 20px 0; }
-.sugestao-card { background: #f8fbff; border-left: 5px solid #00d2ff; padding: 15px; border-radius: 8px; text-align: left; }
-.codigo-sub { font-size: 12px; color: #888; margin-bottom: 10px; }
-.prob-tag { font-size: 11px; font-weight: 800; color: #1e3c72; text-transform: uppercase; }
+/* 4. Listagem de Notas */
+.list-container { max-height: 250px; overflow-y: auto; margin-bottom: 25px; }
+.disc-row { 
+  display: flex; justify-content: space-between; align-items: center; 
+  padding: 12px 10px; border-bottom: 1px solid #f5f5f5; 
+}
+.disc-name { color: #333; font-size: 15px; }
+.nota-badge { background: #e8f5e9; color: #2c5530; padding: 4px 12px; border-radius: 6px; font-weight: 700; }
 
-.progress-bar { width: 100%; height: 6px; background: #eee; border-radius: 10px; overflow: hidden; }
-.progress { height: 100%; background: #00d2ff; transition: width 1s ease-in-out; }
+/* 5. Botões */
+.btn-primary { 
+  background: #2c5530; color: white; border: none; border-radius: 12px; 
+  font-weight: 700; cursor: pointer; transition: 0.3s; 
+}
+.btn-primary:hover:not(:disabled) { background: #3d7543; transform: translateY(-1px); }
+.btn-full { width: 100%; padding: 18px; font-size: 16px; }
 
-.btn-back-full { background: none; border: 1px solid #ddd; padding: 10px; width: 100%; border-radius: 8px; color: #666; cursor: pointer; margin-top: 10px; }
-
-/* REUSANDO OS ESTILOS DA CALCULADORA */
-.calc-header h1 { color: #1e3c72; font-size: 24px; font-weight: 700; margin-bottom: 10px; }
-.subtitle { color: #666; font-size: 14px; margin-bottom: 20px; }
-.divider { border: 0; height: 1px; background: #eee; margin: 20px 0; }
-.add-box { background: #f4f7f4; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
-.btn-add { background: #1e3c72; color: white; border: none; padding: 0 20px; border-radius: 10px; cursor: pointer; font-size: 22px; }
-.disc-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+.btn-add { background: #13223f; color: white; border: none; width: 50px; border-radius: 10px; cursor: pointer; font-size: 22px; }
 .btn-del { background: none; border: none; color: #ff5252; cursor: pointer; font-size: 16px; }
-.info-alert { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: left; font-size: 13px; color: #1e3c72; }
+
+/* 6. Resultados do Otimizador */
+.results-title { color: #2c5530; font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 5px; }
+.small-info { color: #888; font-size: 13px; margin-bottom: 20px; }
+.sugestao-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin: 20px 0; }
+.sugestao-card { 
+  background: #fcfdfc; border-left: 5px solid #4ade80; 
+  padding: 18px; border-radius: 8px; text-align: left;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+}
+.sugestao-card h4 { color: #2c5530; margin: 5px 0; font-size: 17px; }
+.codigo-sub { font-size: 12px; color: #999; margin-bottom: 10px; }
+.prob-tag { font-size: 11px; font-weight: 800; color: #4a7c59; text-transform: uppercase; }
+
+.progress-bar { width: 100%; height: 8px; background: #eee; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+.progress { height: 100%; background: #4ade80; transition: width 1s ease-in-out; }
+
+.btn-back-full { 
+  background: none; border: 1.5px solid #ddd; padding: 12px; width: 100%; 
+  border-radius: 10px; color: #666; cursor: pointer; margin-top: 15px; font-weight: 600;
+}
+
+/* 7. Alertas e Utilitários */
+.info-alert { 
+  background: #e8f5e9; border-left: 4px solid #4ade80; 
+  padding: 15px; border-radius: 8px; margin-bottom: 20px; 
+  display: flex; gap: 12px; align-items: center; text-align: left;
+}
+.info-alert p { font-size: 13px; color: #2c5530; margin: 0; line-height: 1.4; }
+
 .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.8s linear infinite; display: inline-block; margin-right: 10px; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+button:disabled { background: #ccc !important; cursor: not-allowed; }
+.text-center { text-align: center; }
 </style>

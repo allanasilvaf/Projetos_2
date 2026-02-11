@@ -178,7 +178,7 @@ export default {
   overflow: hidden;
 }
 
-/* HEADER SUPERIOR */
+
 .system-brand-premium {
   position: absolute;
   top: 0;

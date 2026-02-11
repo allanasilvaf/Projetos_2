@@ -1,4 +1,3 @@
-// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/Home.vue'
 
@@ -13,7 +12,8 @@ const router = createRouter({
     {
       path: '/dashboard',
       name: 'dashboard',
-      component: () => import('../views/Dashboard.vue')
+      component: () => import('../views/Dashboard.vue'),
+      meta: { requiresAuth: true }
     },
     {
       path: '/login',
@@ -21,23 +21,8 @@ const router = createRouter({
       component: () => import('../views/Login.vue')
     },
     {
-      path: '/cadastro',
-      name: 'cadastro',
-      component: () => import('../views/Cadastro.vue')
-    },
-    {
-      path: '/ajustes',
-      name: 'ajustes',
-      component: () => import('../views/Ajustes.vue')
-    },
-    {
-      path: '/Forgotpassword',
-      name: 'Forgotpassword',
-      component: () => import('../views/Forgotpassword.vue')
-    },
-    {
       path: '/Calculadora',
-      name: 'Calculadora',
+      name: 'calculadora',
       component: () => import('../views/Calculadora.vue')
     },
     {
@@ -46,12 +31,43 @@ const router = createRouter({
       component: () => import('../views/Otimizador.vue')
     },
     {
-      path: '/Chatbot',
-      name: 'Chatbot',
-      component: () => import('../views/Chatbot.vue')
-    }
+      path: '/Cadastro',
+      name: 'Cadastro',
+      component: () => import('../views/Cadastro.vue')
+    },
+    {
+      path: '/ajustes', // <--- ROTA QUE ESTAMOS TESTANDO
+      name: 'ajustes',
+      component: () => import('../views/Ajustes.vue'),
+      meta: { requiresAuth: true } // <--- TEM QUE TER ISSO AQUI
+    },
+    // ... suas outras rotas ...
   ]
-
 })
+
+// === O GUARDA DE SEGURANÇA ===
+router.beforeEach((to, from, next) => {
+  // Pega o usuário do navegador
+  const usuarioSalvo = localStorage.getItem('user');
+
+  console.log(`Tentando ir para: ${to.path}`);
+  console.log(`Rota Protegida? ${to.meta.requiresAuth}`);
+  console.log(`Tem usuário salvo? ${usuarioSalvo}`);
+
+  // Se a rota precisa de senha (requiresAuth)
+  if (to.meta.requiresAuth) {
+    // Se NÃO tem usuário...
+    if (!usuarioSalvo) {
+      console.log("🚫 BLOQUEADO! Redirecionando para Login...");
+      next('/login'); // Chuta para o login
+    } else {
+      console.log("✅ PERMITIDO! Usuário encontrado.");
+      next(); // Deixa entrar
+    }
+  } else {
+    // Se a rota for pública (Home, Login, Cadastro)
+    next(); 
+  }
+});
 
 export default router

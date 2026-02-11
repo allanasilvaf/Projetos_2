@@ -117,7 +117,7 @@ export default {
     },
     redirectUser(tipo) {
       const routes = { 'professor': '/professor/dashboard', 'admin': '/admin/dashboard' };
-      this.$router.push(routes[tipo] || '/dashboard');
+      this.$router.push(routes[tipo] || '/ajustes');
     }
   }
 }

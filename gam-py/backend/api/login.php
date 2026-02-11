@@ -45,7 +45,7 @@ try {
     $conn = getConnection();
     
     // Buscar usuário pelo email
-    $stmt = $conn->prepare("SELECT id, nome, email, senha, tipo FROM usuario WHERE email = ?");
+    $stmt = $conn->prepare("SELECT id, nome, email, senha, tipo, semestre FROM usuario WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
