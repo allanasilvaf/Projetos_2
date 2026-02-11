@@ -80,9 +80,15 @@
           <div class="flex-1 pr-4">
             <h3 class="text-xl font-bold text-dark mb-2">ChatBot</h3>
             <p class="text-gray-500 text-sm mb-4">Tire suas dúvidas sobre o curso diretamente com o Gambot.</p>
-            <router-link to="/Chatbot" class="inline-block bg-dark text-white px-4 py-2 rounded-full text-xs font-bold group-hover:bg-primary transition-colors">
+            
+            <a 
+              href="https://gambot.streamlit.app/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="inline-block bg-dark text-white px-4 py-2 rounded-full text-xs font-bold group-hover:bg-primary transition-colors"
+            >
               Iniciar Chat
-            </router-link>
+            </a>
           </div>
           <img src="https://img.freepik.com/fotos-gratis/alto-angulo-de-dardo-na-mosca_23-2148443764.jpg" class="w-24 h-24 rounded-xl object-cover shadow-sm">
         </div>
