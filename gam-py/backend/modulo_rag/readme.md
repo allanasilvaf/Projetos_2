@@ -2,6 +2,9 @@
 
 **Assistente Acadêmico Inteligente da Universidade Federal do Pará**
 
+## Site 
+Site: https://gambot.streamlit.app/
+
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=Streamlit&logoColor=white)](https://streamlit.io/)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org/)
 [![OpenAI](https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white)](https://openai.com/)
@@ -24,7 +27,7 @@ O **Gambot UFPA** é um sistema inteligente de busca e consulta a documentos aca
 | **Controle de Fontes** | Cita o documento e a página de onde a informação foi retirada |
 
 
-## Começando Rápido
+## Para rodar localmente 
 
 ### Pré-requisitos
 
