@@ -12,7 +12,8 @@ CREATE TABLE usuario (
     telefone VARCHAR(20),
     data_nascimento DATE,
     curso_id INT,
-    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    semestre VARCHAR(20) DEFAULT NULL
 );
 
 INSERT INTO usuario (nome, email, cpf, senha, tipo) VALUES
